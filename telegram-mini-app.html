@@ -36,16 +36,19 @@
   .add-row button{background:var(--accent); color:var(--accent-text); border:none; border-radius:14px; padding:0 18px; font-family:inherit; font-weight:700; font-size:15px; cursor:pointer;}
 
   ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
-  li{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px;}
+  li{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px;}
   .check{width:22px; height:22px; border-radius:7px; border:2px solid var(--hint); flex:none; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.15s;}
   .check.done{background:var(--accent); border-color:var(--accent);}
   .check svg{width:13px; height:13px; opacity:0; transition:.15s;}
   .check.done svg{opacity:1;}
-  .task-text{flex:1; font-size:15px;}
+  .task-text{flex:1; font-size:15px; cursor:text; word-break:break-word;}
   .task-text.done{color:var(--hint); text-decoration:line-through;}
-  .del{color:var(--hint); background:none; border:none; font-size:18px; cursor:pointer; padding:4px;}
+  .task-edit-input{flex:1; font-size:15px; font-family:inherit; border:1px solid var(--accent); border-radius:8px; padding:6px 8px; background:var(--bg); color:var(--text);}
+  .icon-btn{color:var(--hint); background:none; border:none; font-size:16px; cursor:pointer; padding:4px; flex:none; line-height:1;}
+  .icon-btn.edit{font-size:15px;}
 
   .empty{text-align:center; color:var(--hint); font-size:14px; padding:30px 0;}
+  .sync-note{text-align:center; color:var(--hint); font-size:11px; margin:-8px 0 16px;}
 
   .footer-note{margin-top:24px; text-align:center; font-size:12px; color:var(--hint); line-height:1.8;}
 </style>
@@ -65,10 +68,12 @@
     <button id="addBtn">افزودن</button>
   </div>
 
+  <p class="sync-note" id="syncNote"></p>
+
   <ul id="taskList"></ul>
   <div class="empty" id="emptyState">هنوز کاری اضافه نکردی</div>
 
-  <p class="footer-note">این یه نمونه‌ی مینی‌اپ تلگرامه — از Telegram WebApp SDK برای تم، دکمه اصلی و لرزش استفاده می‌کنه.</p>
+  <p class="footer-note">این یه نمونه‌ی مینی‌اپ تلگرامه — کارها روی حساب تلگرام خودت ذخیره میشن.</p>
 </div>
 
 <script>
@@ -85,10 +90,46 @@
     greetingEl.textContent = `سلام ${user.first_name} 👋`;
   }
 
-  let tasks = [
-    { text: 'اپ رو روی تلگرام تست کن', done: false },
-    { text: 'یه کار به لیست اضافه کن', done: false }
-  ];
+  const STORAGE_KEY = 'todo_tasks_v1';
+  const hasCloudStorage = !!(tg && tg.CloudStorage);
+  const syncNoteEl = document.getElementById('syncNote');
+  syncNoteEl.textContent = hasCloudStorage
+    ? 'ذخیره‌سازی: حساب تلگرام شما'
+    : 'ذخیره‌سازی: همین مرورگر';
+
+  let tasks = [];
+  let nextId = 1;
+
+  function saveTasks() {
+    const payload = JSON.stringify({ tasks, nextId });
+    if (hasCloudStorage) {
+      tg.CloudStorage.setItem(STORAGE_KEY, payload, (err) => {
+        if (err) console.error('CloudStorage save error:', err);
+      });
+    } else {
+      try { localStorage.setItem(STORAGE_KEY, payload); } catch (e) { console.error(e); }
+    }
+  }
+
+  function loadTasks(callback) {
+    if (hasCloudStorage) {
+      tg.CloudStorage.getItem(STORAGE_KEY, (err, value) => {
+        if (err) { console.error('CloudStorage load error:', err); callback(null); return; }
+        callback(value || null);
+      });
+    } else {
+      let value = null;
+      try { value = localStorage.getItem(STORAGE_KEY); } catch (e) { console.error(e); }
+      callback(value);
+    }
+  }
+
+  function seedDefaults() {
+    tasks = [
+      { id: nextId++, text: 'اپ رو روی تلگرام تست کن', done: false },
+      { id: nextId++, text: 'یه کار به لیست اضافه کن', done: false }
+    ];
+  }
 
   const listEl = document.getElementById('taskList');
   const emptyEl = document.getElementById('emptyState');
@@ -101,14 +142,16 @@
     listEl.innerHTML = '';
     emptyEl.style.display = tasks.length ? 'none' : 'block';
 
-    tasks.forEach((task, i) => {
+    tasks.forEach((task) => {
       const li = document.createElement('li');
+      li.dataset.id = task.id;
       li.innerHTML = `
-        <div class="check ${task.done ? 'done' : ''}" data-i="${i}">
+        <div class="check ${task.done ? 'done' : ''}" data-action="toggle">
           <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <span class="task-text ${task.done ? 'done' : ''}">${task.text}</span>
-        <button class="del" data-del="${i}">✕</button>
+        <span class="task-text ${task.done ? 'done' : ''}" data-action="edit">${escapeHtml(task.text)}</span>
+        <button class="icon-btn edit" data-action="edit" title="ویرایش">✎</button>
+        <button class="icon-btn" data-action="delete" title="حذف">✕</button>
       `;
       listEl.appendChild(li);
     });
@@ -118,6 +161,12 @@
     pendingCountEl.textContent = tasks.length - doneN;
 
     updateMainButton();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   function updateMainButton() {
@@ -134,28 +183,67 @@
     }
   }
 
+  function findTask(id) {
+    return tasks.find(t => t.id === id);
+  }
+
+  function startEdit(li, task) {
+    const span = li.querySelector('.task-text');
+    if (!span) return;
+    const editInput = document.createElement('input');
+    editInput.className = 'task-edit-input';
+    editInput.type = 'text';
+    editInput.value = task.text;
+    span.replaceWith(editInput);
+    editInput.focus();
+    editInput.setSelectionRange(editInput.value.length, editInput.value.length);
+
+    function commit() {
+      const val = editInput.value.trim();
+      if (val) {
+        task.text = val;
+        saveTasks();
+      }
+      render();
+    }
+
+    editInput.addEventListener('blur', commit);
+    editInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') editInput.blur();
+      if (e.key === 'Escape') { render(); }
+    });
+  }
+
   listEl.addEventListener('click', (e) => {
-    const checkEl = e.target.closest('.check');
-    const delEl = e.target.closest('[data-del]');
-    if (checkEl) {
-      const i = +checkEl.dataset.i;
-      tasks[i].done = !tasks[i].done;
+    const li = e.target.closest('li');
+    if (!li) return;
+    const id = Number(li.dataset.id);
+    const task = findTask(id);
+    if (!task) return;
+    const action = e.target.closest('[data-action]')?.dataset.action;
+
+    if (action === 'toggle') {
+      task.done = !task.done;
       tg?.HapticFeedback?.impactOccurred('light');
+      saveTasks();
       render();
-    } else if (delEl) {
-      const i = +delEl.dataset.del;
-      tasks.splice(i, 1);
+    } else if (action === 'delete') {
+      tasks = tasks.filter(t => t.id !== id);
       tg?.HapticFeedback?.impactOccurred('medium');
+      saveTasks();
       render();
+    } else if (action === 'edit') {
+      startEdit(li, task);
     }
   });
 
   function addTask() {
     const val = input.value.trim();
     if (!val) return;
-    tasks.push({ text: val, done: false });
+    tasks.push({ id: nextId++, text: val, done: false });
     input.value = '';
     tg?.HapticFeedback?.notificationOccurred('success');
+    saveTasks();
     render();
   }
 
@@ -169,7 +257,22 @@
     });
   }
 
-  render();
+  // Initial load
+  loadTasks((raw) => {
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        tasks = parsed.tasks || [];
+        nextId = parsed.nextId || (tasks.reduce((m, t) => Math.max(m, t.id), 0) + 1);
+      } catch (e) {
+        seedDefaults();
+      }
+    } else {
+      seedDefaults();
+      saveTasks();
+    }
+    render();
+  });
 </script>
 </body>
 </html>

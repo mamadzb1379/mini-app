@@ -16,10 +16,8 @@
     --accent-text: var(--tg-theme-button-text-color, #FFFFFF);
     --card: var(--tg-theme-secondary-bg-color, #FFFFFF);
     --line: #E7DED4;
-
     --plan-blue: #2E7CE0;
     --plan-green: #33A852;
-
     --warn-bg: #FFF6E5;
     --warn-border: #F0C674;
     --warn-text: #7A5A00;
@@ -27,19 +25,15 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Vazirmatn', system-ui, sans-serif; min-height:100vh;}
   .wrap{max-width:520px; margin:0 auto; padding:18px 18px 100px;}
-
   .eyebrow{font-size:13px; color:var(--hint); letter-spacing:.02em; margin:0 0 4px;}
   h1{font-size:26px; font-weight:900; margin:0 0 10px; line-height:1.3;}
   .accent-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-inline-start:6px;}
-
   .brand-welcome{font-size:22px; font-weight:900; text-align:center; margin:0 0 18px; line-height:1.4;}
   .brand-welcome .brand-name{color:var(--accent);}
-
   .summary{display:flex; gap:10px; margin-bottom:18px; align-items:stretch;}
   .stat{flex:1; background:var(--card); border-radius:16px; padding:14px; border:1px solid var(--line);}
   .stat .num{font-size:18px; font-weight:900; word-break:break-word;}
   .stat .lbl{font-size:12px; color:var(--hint); margin-top:2px;}
-
   /* Location dropdown (now placed above the plan picker) */
   .loc-picker{position:relative; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-radius:16px;}
   .loc-trigger{
@@ -50,7 +44,6 @@
   .loc-trigger .chevron{margin-inline-start:auto; color:var(--hint); transition:transform .18s ease;}
   .loc-trigger.open .chevron{transform:rotate(180deg)}
   .loc-flags{font-size:13px; letter-spacing:1px;}
-
   .loc-list{
     position:absolute; top:calc(100% + 6px); right:0; left:0; z-index:20;
     list-style:none; margin:0; padding:8px; border-radius:14px;
@@ -61,7 +54,6 @@
   .loc-item{display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; font-size:13.5px; cursor:pointer;}
   .loc-item:hover, .loc-item:active{background:var(--bg);}
   .loc-item .flag{font-size:16px;}
-
   /* Rules / warning box */
   .rules-box{
     background:var(--warn-bg); border:1.5px solid var(--warn-border); border-radius:16px;
@@ -81,7 +73,6 @@
     background:rgba(255,255,255,.5); border-radius:10px; padding:10px 12px;
   }
   .unlimited-block h3, .unlimited-block .rules-note{color:#9ed49e;}
-
   /* Plan dropdown */
   .plan-picker{position:relative; margin-bottom:16px;}
   .plan-trigger{
@@ -95,7 +86,6 @@
   .plan-trigger.open .chevron{transform:rotate(180deg);}
   .plan-trigger-left{display:flex; align-items:center; gap:10px; overflow:hidden;}
   .plan-trigger-icon{flex:none; font-size:18px; line-height:1;}
-
   .plan-list{
     list-style:none; margin:10px 0 0; padding:0;
     display:flex; flex-direction:column; gap:10px;
@@ -103,7 +93,6 @@
     transition:max-height .25s ease, opacity .2s ease;
   }
   .plan-list.open{max-height:600px; opacity:1;}
-
   .plan-item{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:16px 18px; border-radius:16px; border:none; cursor:pointer;
@@ -115,17 +104,14 @@
   .plan-item.trial{background:var(--plan-green);}
   .plan-item.custom{background:var(--accent); border:2px dashed rgba(255,255,255,.55);}
   .plan-item.selected{outline:2px solid var(--text); outline-offset:2px;}
-
   .plan-item .plan-label{font-size:15px; font-weight:700; line-height:1.5;}
   .plan-item .plan-icon{flex:none; font-size:19px; line-height:1;}
-
   .selected-summary{
     margin-top:14px; padding:14px 16px; border-radius:16px;
     background:var(--card); border:1px solid var(--line); font-size:14px; display:none;
   }
   .selected-summary.show{display:block;}
   .selected-summary b{font-weight:900;}
-
   /* Add-on section: extra volume / extra days steppers (volume-control style) */
   .addon-section{display:none; margin-top:14px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
   .addon-section.show{display:block;}
@@ -149,7 +135,6 @@
   .addon-value.off{color:var(--hint); font-weight:700;}
   .addon-total{margin:12px 0 0; padding-top:12px; border-top:1px dashed var(--line); font-size:13px; text-align:center; color:var(--hint); min-height:1px;}
   .addon-total b{color:var(--text); font-weight:900;}
-
   /* Payment section */
   .pay-section{display:none; margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
   .pay-section.show{display:block;}
@@ -215,7 +200,6 @@
   .pay-status.show{display:block;}
   .cooldown-note{margin-top:10px; font-size:12.5px; text-align:center; color:var(--warn-text); font-weight:700; display:none; background:var(--warn-bg); border:1px solid var(--warn-border); border-radius:10px; padding:8px 10px;}
   .cooldown-note.show{display:block;}
-
   /* Apps + video guide section */
   .guide-section{margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
   .guide-title{font-weight:900; font-size:15px; margin:0 0 4px; display:flex; align-items:center; gap:8px;}
@@ -240,7 +224,6 @@
   .device-tab-btn.active{background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
   .device-panel{display:none;}
   .device-panel.active{display:block;}
-
   .footer-note{margin-top:24px; text-align:center; font-size:12px; color:var(--hint); line-height:1.8;}
 </style>
 </head>
@@ -249,11 +232,9 @@
   <p class="eyebrow" id="greeting">پلن‌های اینترنت</p>
   <h1>پلن‌های آماده پایه<span class="accent-dot"></span></h1>
   <p class="brand-welcome">به <span class="brand-name">MBS Online</span> خوش آمدید</p>
-
   <div class="summary">
     <div class="stat"><div class="num id-value" id="userIdText">—</div><div class="lbl">شناسه شما (ID)</div></div>
   </div>
-
   <!-- Location dropdown: now placed directly above the plan picker -->
   <div class="loc-picker" id="locPicker">
     <button class="loc-trigger" id="locTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
@@ -264,7 +245,6 @@
     </button>
     <ul class="loc-list" id="locList" role="listbox"></ul>
   </div>
-
   <!-- Plan dropdown -->
   <div class="plan-picker" id="planPicker">
     <button class="plan-trigger" id="planTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
@@ -278,45 +258,36 @@
     </button>
     <ul class="plan-list" id="planList" role="listbox"></ul>
   </div>
-
   <!-- Rules / important notice -->
   <div class="rules-box">
     <div class="rules-collapsible" id="rulesCollapsible">
       <p class="rules-title"><span class="warn-icon">⚠️</span> قبل از انتخاب پلن، این توضیحات را کامل بخوانید</p>
-
       <h3>💳 تعرفه</h3>
       <ul class="rules-list">
         <li>هر گیگابایت: ۱۵٬۰۰۰ تومان</li>
         <li>هر روز: ۲٬۰۰۰ تومان</li>
       </ul>
-
       <h3>⚡ ضریب مصرف اشتراک‌ها</h3>
       <ul class="rules-list">
         <li>🚇 تونل (×۱) — هر ۱ گیگ = ۱ گیگ از سهمیه</li>
         <li>📍 مستقیم (×۰.۱۵) — هر ۱ گیگ مصرف = ۱۵۴ مگابایت از سهمیه</li>
       </ul>
       <p class="rules-note">💡 ضریب کوچک‌تر یعنی هر گیگ مصرف، کمتر از سهمیه‌تون کم می‌شود.</p>
-
       <div class="rules-divider"></div>
-
       <div class="unlimited-block">
         <h3>👥 بدون محدودیت کاربر و دستگاه!</h3>
         <p class="rules-note">🎉 هیچ محدودیت تعداد کاربر ندارید — همزمان با هر تعداد نفر و روی هر تعداد دستگاه (موبایل، لپ‌تاپ، تبلت و ...) استفاده کنید!</p>
       </div>
-
       <div class="rules-warn-final">
         ⚠️ توجه: این قوانین بخشی از توافق خرید شماست. لطفاً پیش از انتخاب پلن، تمام موارد بالا را با دقت مطالعه کنید. عدم آگاهی از این موارد، مسئولیتی متوجه فروشنده نمی‌کند.
       </div>
     </div>
   </div>
-
   <div class="selected-summary" id="selectedSummary"></div>
-
   <!-- Add-ons: extra volume / extra days (volume-control style steppers) -->
   <div class="addon-section" id="addonSection">
     <p class="addon-title">🛠️ ساخت پلن دلخواه</p>
     <p class="addon-subtitle">حجم و روز موردنظرتون رو انتخاب کنید تا پلن دلخواه شما ساخته بشه.</p>
-
     <div class="addon-row">
       <div class="addon-label">
         <span class="addon-icon">📦</span>
@@ -331,7 +302,6 @@
         <button class="addon-btn" id="volPlus" type="button" aria-label="اضافه کردن حجم">+</button>
       </div>
     </div>
-
     <div class="addon-row">
       <div class="addon-label">
         <span class="addon-icon">📅</span>
@@ -346,21 +316,17 @@
         <button class="addon-btn" id="dayPlus" type="button" aria-label="اضافه کردن روز">+</button>
       </div>
     </div>
-
     <p class="addon-total" id="addonTotalNote"></p>
   </div>
-
   <!-- Payment -->
   <div class="pay-section" id="paySection">
     <p class="pay-title">💳 پرداخت</p>
-
     <div class="pay-methods">
       <button class="pay-method-btn active" id="payMethodCardBtn" type="button">کارت‌به‌کارت</button>
       <button class="pay-method-btn" id="payMethodCryptoBtn" type="button">
         استارز / ارز دیجیتال <span class="soon-badge">به‌زودی</span>
       </button>
     </div>
-
     <div class="pay-method-panel active" id="payMethodCardPanel">
       <div class="pay-cards">
         <div class="pay-card">
@@ -382,19 +348,15 @@
           <button class="copy-btn card-copy-btn" type="button" data-num="6037998193210035">📋 کپی شماره کارت</button>
         </div>
       </div>
-
       <p class="pay-amount">مبلغ قابل پرداخت: <b id="payAmount">—</b> تومان</p>
       <p class="pay-note">مبلغ رو دقیقاً به یکی از کارت‌های بالا کارت‌به‌کارت کنید، عکس رسید رو انتخاب و ارسال کنید. پس از بررسی توسط پشتیبانی، پلن براتون فعال میشه.</p>
-
       <input type="file" id="receiptInput" accept="image/*" style="display:none;">
       <button class="copy-btn" id="pickReceiptBtn" type="button">📎 انتخاب تصویر رسید</button>
       <p class="pay-note" id="receiptFileName" style="display:none; margin-bottom:14px;"></p>
-
       <button class="pay-confirm-btn" id="payConfirmBtn" type="button">ارسال رسید پرداخت</button>
       <p class="cooldown-note" id="cooldownNote"></p>
       <p class="pay-status" id="payStatus">✅ خرید شما با موفقیت ثبت شد. لطفاً برای بررسی صبوری بفرمایید.</p>
     </div>
-
     <div class="pay-method-panel" id="payMethodCryptoPanel">
       <div class="crypto-soon">
         <span class="big-icon">⭐️ ₿</span>
@@ -403,12 +365,10 @@
       </div>
     </div>
   </div>
-
   <!-- Apps + video guide -->
   <div class="guide-section">
     <p class="guide-title">📲 اپلیکیشن‌های مورد نیاز</p>
     <p class="guide-sub">اول نوع دستگاهتون رو انتخاب کنید تا لینک دانلود مناسب همون دستگاه رو ببینید:</p>
-
     <div class="device-tabs" id="deviceTabs">
       <button type="button" class="device-tab-btn" data-device="android">
         <span class="device-tab-icon">🤖</span>
@@ -423,7 +383,6 @@
         ویندوز
       </button>
     </div>
-
     <div class="device-panel" id="devicePanelAndroid">
       <div class="guide-grid">
         <a class="guide-link" id="appV2boxAndroid" href="#" target="_blank" rel="noopener">
@@ -438,7 +397,6 @@
         </a>
       </div>
     </div>
-
     <div class="device-panel" id="devicePanelIos">
       <div class="guide-grid">
         <a class="guide-link" id="appV2boxIos" href="#" target="_blank" rel="noopener">
@@ -448,7 +406,6 @@
         </a>
       </div>
     </div>
-
     <div class="device-panel" id="devicePanelWindows">
       <div class="guide-grid">
         <a class="guide-link" id="appHappWindows" href="#" target="_blank" rel="noopener">
@@ -458,9 +415,7 @@
         </a>
       </div>
     </div>
-
     <div class="guide-divider"></div>
-
     <p class="guide-title">🎬 راهنمای ویدیویی افزودن کانفیگ</p>
     <p class="guide-sub">مراحل افزودن کانفیگ خریداری‌شده به اپلیکیشن رو در این ویدیوها ببینید:</p>
     <div class="crypto-soon">
@@ -469,28 +424,23 @@
     </div>
   </div>
 </div>
-
 <script>
   const tg = window.Telegram?.WebApp;
   if (tg) {
     tg.ready();
     tg.expand();
   }
-
   const greetingEl = document.getElementById('greeting');
   const user = tg?.initDataUnsafe?.user;
-
   // Raw signed init-data string. This is forwarded as-is to the backend so
   // it can cryptographically verify the request really came from this
   // Telegram user via HMAC (see the Apps Script side) — the client-side
   // `user` object above is NOT trusted for anything security-sensitive,
   // it's only used to render the UI (greeting/ID).
   const initData = tg?.initData || '';
-
   if (user?.first_name) {
     greetingEl.textContent = `سلام ${user.first_name} 👋`;
   }
-
   /* ---------- Show the user's Telegram ID ---------- */
   const userIdText = document.getElementById('userIdText');
   if (user?.id) {
@@ -499,7 +449,6 @@
     userIdText.textContent = '—';
     userIdText.title = 'برای دیدن شناسه، این صفحه را از داخل اپ تلگرام باز کنید.';
   }
-
   /* ---------- App download / video guide links ---------- */
   const APP_LINKS = {
     v2boxIos: 'https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690',
@@ -540,19 +489,18 @@
         ? 'windows'
         : 'android';
   selectDevice(uaGuess);
-
   /* ---------- Record every visit (best-effort, client-side only) ----------
      Important limitation: a static page like this has no database and
      cannot keep a central admin-visible list of every user who opened it.
      What we CAN do from here:
-     1) Save a "first seen" timestamp for this user in their own
-        Telegram CloudStorage (so the user's own device remembers it).
-     2) If your bot's backend listens for Web App data
-        (the "web_app_data" update), we forward the id/timestamp there
-        via tg.sendData() so your bot/server can log it centrally.
-        This ONLY works if the app was opened via a bot keyboard button
-        of type web_app, and your bot code handles that update — that
-        part has to live on your server, not in this HTML file. */
+       1) Save a "first seen" timestamp for this user in their own
+          Telegram CloudStorage (so the user's own device remembers it).
+       2) If your bot's backend listens for Web App data
+          (the "web_app_data" update), we forward the id/timestamp there
+          via tg.sendData() so your bot/server can log it centrally.
+          This ONLY works if the app was opened via a bot keyboard button
+          of type web_app, and your bot code handles that update — that
+          part has to live on your server, not in this HTML file. */
   if (tg && user?.id) {
     const visitKey = 'user_meta_v1';
     tg.CloudStorage?.getItem(visitKey, (err, existing) => {
@@ -562,7 +510,6 @@
       }
     });
   }
-
   /* ---------- Log every visitor's ID to your Telegram support chat ----------
      Fires automatically as soon as the app opens, no user action needed.
      Uses mode:'no-cors' because the Apps Script endpoint doesn't send
@@ -573,7 +520,6 @@
      message — replacing the old Google Sheet log. */
   const VISIT_LOG_URL = 'https://script.google.com/macros/s/AKfycbw78w78aheLjix9qu-20xkUGh8z2W9Gs6XNWjUQbBfIAl33ZkGyGrMbCNCjGfehq9L0QQ/exec';
   const PURCHASE_LOG_URL = VISIT_LOG_URL;
-
   if (user?.id) {
     fetch(VISIT_LOG_URL, {
       method: 'POST',
@@ -591,28 +537,25 @@
   /* Note: tg.sendData() is intentionally NOT called here — Telegram closes
      the Mini App the instant sendData() runs, so it can only be used on a
      final, deliberate action (like a "submit" button), never on page load. */
-
   /* ---------- Locations ---------- */
   const locations = [
-    { name: 'آلمان', flag: '🇩🇪' },
-    { name: 'فرانسه', flag: '🇫🇷' },
-    { name: 'هلند', flag: '🇳🇱' },
-    { name: 'آمریکا', flag: '🇺🇸' },
-    { name: 'سوئد', flag: '🇸🇪' },
-    { name: 'ترکیه', flag: '🇹🇷' },
-    { name: 'انگلیس', flag: '🇬🇧' },
-    { name: 'سنگاپور', flag: '🇸🇬' },
-    { name: 'فنلاند', flag: '🇫🇮' },
-    { name: 'هند', flag: '🇮🇳' },
-    { name: 'برزیل', flag: '🇧🇷' }
+    { name: 'آلمان',    flag: '🇩🇪' },
+    { name: 'فرانسه',    flag: '🇫🇷' },
+    { name: 'هلند',      flag: '🇳🇱' },
+    { name: 'آمریکا',    flag: '🇺🇸' },
+    { name: 'سوئد',      flag: '🇸🇪' },
+    { name: 'ترکیه',     flag: '🇹🇷' },
+    { name: 'انگلیس',    flag: '🇬🇧' },
+    { name: 'سنگاپور',   flag: '🇸🇬' },
+    { name: 'فنلاند',    flag: '🇫🇮' },
+    { name: 'هند',       flag: '🇮🇳' },
+    { name: 'برزیل',     flag: '🇧🇷' }
   ];
   const locTrigger = document.getElementById('locTrigger');
   const locList = document.getElementById('locList');
   const locFlagsPreview = document.getElementById('locFlagsPreview');
   let locOpen = false;
-
   locFlagsPreview.textContent = locations.map(l => l.flag).join(' ');
-
   function renderLocList() {
     locList.innerHTML = '';
     locations.forEach((loc) => {
@@ -623,7 +566,6 @@
     });
   }
   renderLocList();
-
   function toggleLocList(forceOpen) {
     locOpen = typeof forceOpen === 'boolean' ? forceOpen : !locOpen;
     locList.classList.toggle('open', locOpen);
@@ -631,7 +573,6 @@
     locTrigger.setAttribute('aria-expanded', String(locOpen));
   }
   locTrigger.addEventListener('click', (e) => { e.stopPropagation(); toggleLocList(); });
-
   /* ---------- Plans ---------- */
   const plans = [
     { id: 'trial',    label: 'پلن تستی - 1 گیگ 2 روزه - ۵۰٬۰۰۰ تومان',      icon: '➕', price: 50000,  cls: 'trial' },
@@ -651,10 +592,8 @@
   const payStatusEl = document.getElementById('payStatus');
   const addonSection = document.getElementById('addonSection');
   const addonTotalNote = document.getElementById('addonTotalNote');
-
   let selectedPlan = null;
   let planOpen = false;
-
   function renderPlanList() {
     listEl.innerHTML = '';
     plans.forEach((plan) => {
@@ -674,59 +613,49 @@
     });
   }
   renderPlanList();
-
   function togglePlanList(forceOpen) {
     planOpen = typeof forceOpen === 'boolean' ? forceOpen : !planOpen;
     listEl.classList.toggle('open', planOpen);
     triggerEl.classList.toggle('open', planOpen);
     triggerEl.setAttribute('aria-expanded', String(planOpen));
   }
-
   function selectPlan(plan) {
     selectedPlan = plan;
     triggerTextEl.textContent = plan.label;
     triggerTextEl.classList.remove('placeholder');
     triggerIconEl.textContent = plan.icon;
     tg?.HapticFeedback?.selectionChanged();
-
     summaryEl.classList.add('show');
     summaryEl.innerHTML = plan.id === 'custom'
       ? 'پلن دلخواه شما — حجم و روز موردنظرتون رو در بخش پایین انتخاب کنید.'
       : `پلن انتخابی شما: <b>${plan.label}</b>`;
-
     renderPlanList();
     togglePlanList(false);
-
     if (plan.id === 'custom') {
       addonSection.classList.add('show');
     } else {
       addonSection.classList.remove('show');
       resetAddons();
     }
-
     updatePayAmount();
     paySection.classList.add('show');
     payStatusEl.classList.remove('show');
     refreshCooldownUI();
   }
-
   /* ---------- Add-ons: extra volume / extra days (volume-control style) ---------- */
   const VOL_STEP = 5, VOL_MIN = 10, VOL_MAX = 300, VOL_PRICE_PER_GB = 15000;
   const DAY_STEP = 5, DAY_MIN = 5, DAY_MAX = 365, DAY_PRICE_PER_DAY = 2000;
   let extraVolume = 0;
   let extraDays = 0;
-
   const volValueEl = document.getElementById('volValue');
   const dayValueEl = document.getElementById('dayValue');
   const volMinusBtn = document.getElementById('volMinus');
   const volPlusBtn = document.getElementById('volPlus');
   const dayMinusBtn = document.getElementById('dayMinus');
   const dayPlusBtn = document.getElementById('dayPlus');
-
   function addonTotalPrice() {
     return (extraVolume * VOL_PRICE_PER_GB) + (extraDays * DAY_PRICE_PER_DAY);
   }
-
   function updatePayAmount() {
     const total = (selectedPlan?.price || 0) + addonTotalPrice();
     payAmountEl.textContent = total.toLocaleString('fa-IR');
@@ -735,7 +664,6 @@
       ? `هزینه افزودنی‌ها: ${addonCost.toLocaleString('fa-IR')} تومان`
       : '';
   }
-
   function updateVolUI() {
     volValueEl.textContent = extraVolume > 0 ? `${extraVolume.toLocaleString('fa-IR')} گیگ` : 'غیرفعال';
     volValueEl.classList.toggle('off', extraVolume === 0);
@@ -743,7 +671,6 @@
     volPlusBtn.disabled = extraVolume >= VOL_MAX;
     updatePayAmount();
   }
-
   function updateDayUI() {
     dayValueEl.textContent = extraDays > 0 ? `${extraDays.toLocaleString('fa-IR')} روز` : 'غیرفعال';
     dayValueEl.classList.toggle('off', extraDays === 0);
@@ -751,14 +678,12 @@
     dayPlusBtn.disabled = extraDays >= DAY_MAX;
     updatePayAmount();
   }
-
   function resetAddons() {
     extraVolume = 0;
     extraDays = 0;
     updateVolUI();
     updateDayUI();
   }
-
   volMinusBtn.addEventListener('click', () => {
     extraVolume = extraVolume <= VOL_MIN ? 0 : extraVolume - VOL_STEP;
     updateVolUI();
@@ -779,20 +704,16 @@
     updateDayUI();
     tg?.HapticFeedback?.impactOccurred('light');
   });
-
   triggerEl.addEventListener('click', (e) => { e.stopPropagation(); togglePlanList(); });
-
   document.addEventListener('click', (e) => {
     if (planOpen && !e.target.closest('.plan-picker')) togglePlanList(false);
     if (locOpen && !e.target.closest('.loc-picker')) toggleLocList(false);
   });
-
   /* ---------- Payment ---------- */
   const payMethodCardBtn = document.getElementById('payMethodCardBtn');
   const payMethodCryptoBtn = document.getElementById('payMethodCryptoBtn');
   const payMethodCardPanel = document.getElementById('payMethodCardPanel');
   const payMethodCryptoPanel = document.getElementById('payMethodCryptoPanel');
-
   function setPayMethod(method) {
     const isCard = method === 'card';
     payMethodCardBtn.classList.toggle('active', isCard);
@@ -803,7 +724,6 @@
   }
   payMethodCardBtn.addEventListener('click', () => setPayMethod('card'));
   payMethodCryptoBtn.addEventListener('click', () => setPayMethod('crypto'));
-
   document.querySelectorAll('.card-copy-btn').forEach((btn) => {
     const originalLabel = btn.textContent;
     btn.addEventListener('click', () => {
@@ -817,14 +737,12 @@
       });
     });
   });
-
   const payConfirmBtn = document.getElementById('payConfirmBtn');
   const receiptInput = document.getElementById('receiptInput');
   const pickReceiptBtn = document.getElementById('pickReceiptBtn');
   const receiptFileName = document.getElementById('receiptFileName');
   const cooldownNoteEl = document.getElementById('cooldownNote');
   let receiptFile = null;
-
   pickReceiptBtn.addEventListener('click', () => receiptInput.click());
   receiptInput.addEventListener('change', () => {
     receiptFile = receiptInput.files?.[0] || null;
@@ -834,7 +752,6 @@
       pickReceiptBtn.textContent = '📎 تغییر تصویر رسید';
     }
   });
-
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -843,13 +760,11 @@
       reader.readAsDataURL(file);
     });
   }
-
   function generateInvoiceNumber() {
     const ts = Date.now().toString().slice(-8);
     const rand = Math.floor(Math.random() * 90 + 10);
     return `${ts}${rand}`;
   }
-
   /* ---------- Receipt-submission cooldown (anti-spam) ----------
      A user shouldn't be able to fire off receipt photos back-to-back —
      that both spams the admin chat and makes it hard to track which
@@ -921,7 +836,6 @@
       tg?.showAlert ? tg.showAlert('لطفاً ابتدا تصویر رسید پرداخت را انتخاب کنید.') : alert('لطفاً ابتدا تصویر رسید پرداخت را انتخاب کنید.');
       return;
     }
-
     const remaining = await new Promise((resolve) => getReceiptCooldownRemaining(resolve));
     if (remaining > 0) {
       tg?.HapticFeedback?.notificationOccurred('error');
@@ -930,14 +844,11 @@
       refreshCooldownUI();
       return;
     }
-
     payConfirmBtn.disabled = true;
     payConfirmBtn.textContent = 'در حال ارسال…';
-
     try {
       const imageBase64 = await fileToBase64(receiptFile);
       const invoiceNumber = generateInvoiceNumber();
-
       await fetch(PURCHASE_LOG_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -963,7 +874,6 @@
           initData
         })
       });
-
       markReceiptSentNow();
       tg?.HapticFeedback?.notificationOccurred('success');
       payStatusEl.classList.add('show');

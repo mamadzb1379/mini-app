@@ -12,18 +12,18 @@
     /* Fixed brand colors — intentionally NOT tied to --tg-theme-* vars, so
        the mini app always looks the same no matter what theme (light/dark)
        the user's Telegram or phone is on. */
-    --bg: #4D516D;
-    --text: #FFFFFF;
-    --hint: rgba(255,255,255,.72);
+    --bg: #FFD300;
+    --text: #000000;
+    --hint: rgba(0,0,0,.65);
     --accent: #C9622D;
-    --accent-text: #FFFFFF;
-    --card: #777B7E;
-    --line: #999DA0;
-    --plan-bg-default: #999DA0; /* starter / popular / best / gold plans */
-    --plan-bg-special: #777B7E; /* trial plan + custom-plan option */
-    --warn-bg: #777B7E;
-    --warn-border: #999DA0;
-    --warn-text: #FFFFFF;
+    --accent-text: #000000;
+    --card: #FFFFFF;
+    --line: #EAE0A8;
+    --plan-bg-default: #FCF4A3; /* starter / popular / best / gold plans */
+    --plan-bg-special: #D2B55B; /* trial plan + custom-plan option */
+    --warn-bg: #FCF4A3;
+    --warn-border: #D2B55B;
+    --warn-text: #000000;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Vazirmatn', system-ui, sans-serif; min-height:100vh;}
@@ -107,12 +107,12 @@
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:16px 18px; border-radius:16px; border:none; cursor:pointer;
     font-family:inherit; text-align:right; width:100%;
-    color:#fff; background:var(--plan-bg-default);
+    color:var(--text); background:var(--plan-bg-default);
     box-shadow:0 2px 0 rgba(0,0,0,.08) inset;
   }
   .plan-item:active{filter:brightness(.95);}
   .plan-item.trial{background:var(--plan-bg-special);}
-  .plan-item.custom{background:var(--plan-bg-special); border:2px dashed rgba(255,255,255,.55);}
+  .plan-item.custom{background:var(--plan-bg-special); border:2px dashed rgba(0,0,0,.35);}
   .plan-item.selected{outline:2px solid var(--text); outline-offset:2px;}
   .plan-item .plan-label{font-size:15px; font-weight:700; line-height:1.5;}
   .plan-item .plan-icon{flex:none; font-size:19px; line-height:1;}
@@ -160,7 +160,7 @@
     font-size:9.5px; font-weight:900; background:var(--warn-border); color:var(--warn-text);
     border-radius:6px; padding:1px 6px; line-height:1.6;
   }
-  .pay-method-btn.active .soon-badge{background:rgba(0,0,0,.25); color:#FFFFFF;}
+  .pay-method-btn.active .soon-badge{background:rgba(255,255,255,.6); color:#000000;}
   .pay-method-panel{display:none;}
   .pay-method-panel.active{display:block;}
   .pay-cards{display:flex; flex-direction:column; gap:12px; margin-bottom:12px;}

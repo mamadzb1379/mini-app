@@ -33,34 +33,38 @@
   .accent-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-inline-start:6px;}
   .brand-welcome{font-size:22px; font-weight:900; text-align:center; margin:0 0 18px; line-height:1.4;}
   .brand-welcome .brand-name{color:var(--text);}
-  .summary{display:flex; gap:10px; margin-bottom:18px; align-items:stretch;}
-  .stat{flex:1; background:var(--card); border-radius:16px; padding:14px; border:1px solid var(--line);}
-  .stat .num{font-size:18px; font-weight:900; word-break:break-word;}
-  .stat .lbl{font-size:12px; color:var(--hint); margin-top:2px;}
-  /* Location slider (now placed above the plan picker) — a light,
-     non-intrusive horizontal slider with arrow buttons, instead of a
-     dropdown that has to be opened/closed. */
+  /* User-id / wallet summary — one joined box split into two parts by a
+     thin divider (not two separate detached cards). */
+  .summary{
+    display:flex; align-items:stretch; margin-bottom:18px;
+    background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden;
+  }
+  .summary-part{flex:1; padding:14px; text-align:center;}
+  .summary-divider{width:1px; background:var(--line);}
+  .summary .num{font-size:18px; font-weight:900; word-break:break-word;}
+  .summary .lbl{font-size:12px; color:var(--hint); margin-top:2px;}
+  /* Location marquee (now placed above the plan picker) — a light,
+     continuously auto-scrolling infinite loop, no interaction needed. */
   .loc-section{margin-bottom:16px;}
-  .section-label{font-size:13px; font-weight:900; color:var(--text); margin:0 0 8px; opacity:.9;}
-  .loc-slider{
-    display:flex; align-items:center; gap:6px; background:var(--card);
-    border:1px solid var(--line); border-radius:16px; padding:8px;
+  .section-label{font-size:13px; font-weight:900; color:var(--text); margin:0 0 8px; text-align:center;}
+  .loc-marquee{
+    position:relative; overflow:hidden; background:var(--card);
+    border:1px solid var(--line); border-radius:16px; padding:10px 0;
   }
-  .loc-arrow{
-    flex:none; width:30px; height:30px; border-radius:50%; border:1px solid var(--line); background:var(--bg);
-    color:var(--text); font-size:16px; font-weight:900; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; padding:0; font-family:inherit; line-height:1;
+  .loc-marquee-track{
+    display:flex; gap:22px; width:max-content; direction:ltr;
+    animation:loc-scroll 22s linear infinite;
   }
-  .loc-arrow:active{filter:brightness(1.15);}
-  .loc-track-wrap{flex:1; overflow:hidden;}
-  .loc-track{
-    display:flex; gap:16px; overflow-x:auto; scroll-behavior:smooth; scroll-snap-type:x proximity;
-    padding:4px 4px; direction:ltr; -ms-overflow-style:none; scrollbar-width:none;
+  .loc-marquee.paused .loc-marquee-track, .loc-marquee:hover .loc-marquee-track{
+    animation-play-state:paused;
   }
-  .loc-track::-webkit-scrollbar{display:none;}
+  @keyframes loc-scroll{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
   .loc-chip{
     flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-    min-width:56px; scroll-snap-align:start;
+    min-width:56px; padding:0 6px;
   }
   .loc-chip .flag{font-size:24px; line-height:1;}
   .loc-chip .name{font-size:11px; font-weight:700; color:var(--text); white-space:nowrap;}
@@ -143,8 +147,13 @@
   .addon-btn:disabled{opacity:.3; cursor:not-allowed;}
   .addon-value{min-width:60px; text-align:center; font-size:13.5px; font-weight:900;}
   .addon-value.off{color:var(--hint); font-weight:700;}
-  .addon-total{margin:12px 0 0; padding-top:12px; border-top:1px dashed var(--line); font-size:13px; text-align:center; color:var(--hint); min-height:1px;}
-  .addon-total b{color:var(--text); font-weight:900;}
+  .addon-total{
+    display:none; margin-top:14px; padding:10px 14px; text-align:center;
+    font-size:14.5px; font-weight:800; color:var(--text);
+    background:var(--plan-bg-default); border:1px solid var(--line); border-radius:12px;
+  }
+  .addon-total.show{display:block;}
+  .addon-total b{color:var(--text); font-weight:900; font-size:16.5px;}
   /* Payment section */
   .pay-section{display:none; margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
   .pay-section.show{display:block;}
@@ -198,8 +207,12 @@
     width:100%; padding:11px; border-radius:12px; border:1px solid var(--line); background:var(--bg);
     color:var(--text); font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer; margin-bottom:12px;
   }
-  .pay-amount{font-size:14px; margin-bottom:10px;}
-  .pay-amount b{font-weight:900;}
+  .pay-amount{
+    text-align:center; margin-bottom:12px; padding:12px 14px;
+    background:var(--plan-bg-default); border:1px solid var(--line); border-radius:14px;
+  }
+  .pay-amount .amount-label{display:block; font-size:12.5px; font-weight:700; color:var(--hint); margin-bottom:4px;}
+  .pay-amount b{font-weight:900; font-size:23px;}
   .pay-note{font-size:12.5px; color:var(--hint); line-height:1.8; margin-bottom:14px;}
   .pay-confirm-btn{
     width:100%; padding:13px; border-radius:14px; border:none; background:var(--accent); color:var(--accent-text);
@@ -210,22 +223,8 @@
   .pay-status.show{display:block;}
   .cooldown-note{margin-top:10px; font-size:12.5px; text-align:center; color:var(--warn-text); font-weight:700; display:none; background:var(--warn-bg); border:1px solid var(--warn-border); border-radius:10px; padding:8px 10px;}
   .cooldown-note.show{display:block;}
-  /* Apps + video guide section — collapsible, same interaction pattern as
-     the plan picker (tap to expand, chevron rotates). */
+  /* Apps + video guide section — always visible (not collapsible). */
   .guide-section{margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
-  .guide-trigger{
-    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
-    border:none; background:none; padding:0; margin:0; cursor:pointer; font-family:inherit;
-    text-align:right; color:var(--text);
-  }
-  .guide-trigger-left{display:flex; align-items:center; gap:8px; font-weight:900; font-size:15px;}
-  .guide-trigger .chevron{flex:none; transition:transform .18s ease; color:var(--hint);}
-  .guide-trigger.open .chevron{transform:rotate(180deg);}
-  .guide-body{
-    max-height:0; overflow:hidden; opacity:0;
-    transition:max-height .25s ease, opacity .2s ease;
-  }
-  .guide-body.open{max-height:2400px; opacity:1; margin-top:12px;}
   .guide-title{font-weight:900; font-size:15px; margin:0 0 4px; display:flex; align-items:center; gap:8px;}
   .guide-sub{font-size:12px; color:var(--hint); margin:0 0 12px; line-height:1.7;}
   .guide-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
@@ -235,7 +234,8 @@
     color:var(--text); text-decoration:none; font-size:12.5px; font-weight:800; text-align:center; line-height:1.5;
   }
   .guide-link:active{filter:brightness(.95);}
-  .guide-link .guide-link-icon{font-size:20px;}
+  .guide-link .guide-link-icon{display:flex; align-items:center; justify-content:center;}
+  .guide-link .guide-link-icon svg{width:22px; height:22px;}
   .guide-link .guide-link-sub{font-size:10.5px; color:var(--hint); font-weight:600;}
   .guide-divider{height:1px; background:var(--line); margin:16px 0;}
   .device-tabs{display:flex; gap:8px; margin-bottom:12px;}
@@ -244,11 +244,28 @@
     color:var(--text); font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
   }
-  .device-tab-btn .device-tab-icon{font-size:18px;}
+  .device-tab-btn .device-tab-icon{display:flex; align-items:center; justify-content:center;}
+  .device-tab-btn .device-tab-icon svg{width:18px; height:18px;}
   .device-tab-btn.active{background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
   .device-panel{display:none;}
   .device-panel.active{display:block;}
   .footer-note{margin-top:24px; text-align:center; font-size:12px; color:var(--hint); line-height:1.8;}
+  /* "دعوت‌های من" box — near the end of the page, before the footer/version. */
+  .invite-box{margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; text-align:center;}
+  .invite-title{font-weight:900; font-size:15px; margin:0 0 8px;}
+  .invite-desc{font-size:12.5px; color:var(--hint); line-height:1.9; margin:0 0 14px;}
+  .invite-count{
+    display:none; margin:0 0 14px; padding:10px 12px; border-radius:12px;
+    background:var(--plan-bg-default); border:1px solid var(--line);
+    font-size:13px; font-weight:800; color:var(--text); line-height:1.8;
+    white-space:pre-line;
+  }
+  .invite-count.show{display:block;}
+  .invite-share-btn{
+    width:100%; padding:12px; border-radius:14px; border:none; background:var(--accent); color:var(--accent-text);
+    font-family:inherit; font-size:14px; font-weight:900; cursor:pointer;
+  }
+  .invite-share-btn:active{filter:brightness(.95);}
   /* Top-left profile button + dropdown menu */
   .top-bar{position:relative; height:40px; margin-bottom:8px;}
   .profile-btn{
@@ -287,17 +304,22 @@
   <p class="eyebrow" id="greeting">پلن‌های اینترنت</p>
   <p class="brand-welcome">به <span class="brand-name">MBS Online</span> خوش آمدید</p>
   <div class="summary">
-    <div class="stat"><div class="num id-value" id="userIdText">—</div><div class="lbl">شناسه شما (ID)</div></div>
+    <div class="summary-part">
+      <div class="num id-value" id="userIdText">—</div>
+      <div class="lbl">شناسه شما (ID)</div>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-part">
+      <div class="num">👛 کیف پول</div>
+      <div class="lbl">به‌زودی</div>
+    </div>
   </div>
-  <!-- Location slider: now placed directly above the plan picker -->
+  <!-- Location marquee: now placed directly above the plan picker,
+       auto-scrolls continuously (infinite loop), no tap needed. -->
   <div class="loc-section">
-    <p class="section-label">لوکیشن موجود</p>
-    <div class="loc-slider" id="locSlider">
-      <button class="loc-arrow" id="locPrev" type="button" aria-label="لوکیشن قبلی">‹</button>
-      <div class="loc-track-wrap">
-        <div class="loc-track" id="locTrack"></div>
-      </div>
-      <button class="loc-arrow" id="locNext" type="button" aria-label="لوکیشن بعدی">›</button>
+    <p class="section-label">لوکیشن های موجود سرورها</p>
+    <div class="loc-marquee" id="locMarquee">
+      <div class="loc-marquee-track" id="locTrack"></div>
     </div>
   </div>
   <!-- Plan dropdown -->
@@ -378,7 +400,7 @@
           <button class="copy-btn card-copy-btn" type="button" data-num="6037998193210035">📋 کپی شماره کارت</button>
         </div>
       </div>
-      <p class="pay-amount">مبلغ قابل پرداخت: <b id="payAmount">—</b> تومان</p>
+      <p class="pay-amount"><span class="amount-label">مبلغ قابل پرداخت</span><b id="payAmount">—</b> تومان</p>
       <p class="pay-note">مبلغ رو دقیقاً به یکی از کارت‌های بالا کارت‌به‌کارت کنید، عکس رسید رو انتخاب و ارسال کنید. پس از بررسی توسط پشتیبانی، پلن براتون فعال میشه.</p>
       <input type="file" id="receiptInput" accept="image/*" style="display:none;">
       <button class="copy-btn" id="pickReceiptBtn" type="button">📎 انتخاب تصویر رسید</button>
@@ -395,69 +417,68 @@
       </div>
     </div>
   </div>
-  <!-- Apps + video guide (collapsible) -->
+  <!-- Apps + video guide (always visible, not a dropdown) -->
   <div class="guide-section">
-    <button class="guide-trigger" id="guideTrigger" type="button" aria-haspopup="true" aria-expanded="false">
-      <span class="guide-trigger-left">📲 اپلیکیشن‌های مورد نیاز</span>
-      <span class="chevron" id="guideChevron">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-    </button>
-    <div class="guide-body" id="guideBody">
-      <p class="guide-sub">اول نوع دستگاهتون رو انتخاب کنید تا لینک دانلود مناسب همون دستگاه رو ببینید:</p>
-      <div class="device-tabs" id="deviceTabs">
-        <button type="button" class="device-tab-btn" data-device="android">
-          <span class="device-tab-icon">🤖</span>
-          اندروید
-        </button>
-        <button type="button" class="device-tab-btn" data-device="ios">
-          <span class="device-tab-icon">🍏</span>
-          آیفون
-        </button>
-        <button type="button" class="device-tab-btn" data-device="windows">
-          <span class="device-tab-icon">🖥️</span>
-          ویندوز
-        </button>
+    <p class="guide-title">📲 اپلیکیشن‌های مورد نیاز</p>
+    <p class="guide-sub">اول نوع دستگاهتون رو انتخاب کنید تا لینک دانلود مناسب همون دستگاه رو ببینید:</p>
+    <div class="device-tabs" id="deviceTabs">
+      <button type="button" class="device-tab-btn" data-device="android">
+        <span class="device-tab-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#3DDC84" d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.43 11.43 0 0 0-8.94 0L5.65 5.67c-.19-.28-.55-.37-.83-.22-.3.16-.42.54-.26.85L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>
+        </span>
+        اندروید
+      </button>
+      <button type="button" class="device-tab-btn" data-device="ios">
+        <span class="device-tab-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#000000" d="M16.365 1.43c0 1.14-.43 2.06-1.24 2.86-.9.9-2.06 1.42-3.06 1.34-.1-1.1.42-2.24 1.24-3 .84-.86 2.16-1.44 3.06-1.2zM20.6 17.02c-.34.79-.5 1.14-.94 1.84-.61 1-1.47 2.24-2.54 2.25-.95.01-1.2-.62-2.5-.61-1.3 0-1.58.62-2.53.6-1.07-.02-1.88-1.13-2.49-2.13-1.71-2.78-1.89-6.05-.83-7.79.75-1.24 1.94-1.98 3.06-1.98 1.14 0 1.86.63 2.8.63.91 0 1.47-.63 2.79-.63.99 0 2.04.54 2.79 1.47-2.45 1.34-2.05 4.85.39 6.35z"/></svg>
+        </span>
+        آیفون
+      </button>
+      <button type="button" class="device-tab-btn" data-device="windows">
+        <span class="device-tab-icon">
+          <svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="4" y="4" width="38" height="38" fill="#00A4EF"/><rect x="46" y="4" width="38" height="38" fill="#00A4EF"/><rect x="4" y="46" width="38" height="38" fill="#00A4EF"/><rect x="46" y="46" width="38" height="38" fill="#00A4EF"/></svg>
+        </span>
+        ویندوز 11
+      </button>
+    </div>
+    <div class="device-panel" id="devicePanelAndroid">
+      <div class="guide-grid">
+        <a class="guide-link" id="appV2boxAndroid" href="#" target="_blank" rel="noopener">
+          <span class="guide-link-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#3DDC84" d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.43 11.43 0 0 0-8.94 0L5.65 5.67c-.19-.28-.55-.37-.83-.22-.3.16-.42.54-.26.85L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg></span>
+          v2Box
+          <span class="guide-link-sub">Android</span>
+        </a>
+        <a class="guide-link" id="appV2raytunAndroid" href="#" target="_blank" rel="noopener">
+          <span class="guide-link-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#3DDC84" d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.43 11.43 0 0 0-8.94 0L5.65 5.67c-.19-.28-.55-.37-.83-.22-.3.16-.42.54-.26.85L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg></span>
+          v2rayTun
+          <span class="guide-link-sub">Android</span>
+        </a>
       </div>
-      <div class="device-panel" id="devicePanelAndroid">
-        <div class="guide-grid">
-          <a class="guide-link" id="appV2boxAndroid" href="#" target="_blank" rel="noopener">
-            <span class="guide-link-icon">🤖</span>
-            v2Box
-            <span class="guide-link-sub">Android</span>
-          </a>
-          <a class="guide-link" id="appV2raytunAndroid" href="#" target="_blank" rel="noopener">
-            <span class="guide-link-icon">🤖</span>
-            v2rayTun
-            <span class="guide-link-sub">Android</span>
-          </a>
-        </div>
+    </div>
+    <div class="device-panel" id="devicePanelIos">
+      <div class="guide-grid">
+        <a class="guide-link" id="appV2boxIos" href="#" target="_blank" rel="noopener">
+          <span class="guide-link-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#000000" d="M16.365 1.43c0 1.14-.43 2.06-1.24 2.86-.9.9-2.06 1.42-3.06 1.34-.1-1.1.42-2.24 1.24-3 .84-.86 2.16-1.44 3.06-1.2zM20.6 17.02c-.34.79-.5 1.14-.94 1.84-.61 1-1.47 2.24-2.54 2.25-.95.01-1.2-.62-2.5-.61-1.3 0-1.58.62-2.53.6-1.07-.02-1.88-1.13-2.49-2.13-1.71-2.78-1.89-6.05-.83-7.79.75-1.24 1.94-1.98 3.06-1.98 1.14 0 1.86.63 2.8.63.91 0 1.47-.63 2.79-.63.99 0 2.04.54 2.79 1.47-2.45 1.34-2.05 4.85.39 6.35z"/></svg></span>
+          v2Box
+          <span class="guide-link-sub">iOS</span>
+        </a>
       </div>
-      <div class="device-panel" id="devicePanelIos">
-        <div class="guide-grid">
-          <a class="guide-link" id="appV2boxIos" href="#" target="_blank" rel="noopener">
-            <span class="guide-link-icon">🍏</span>
-            v2Box
-            <span class="guide-link-sub">iOS</span>
-          </a>
-        </div>
+    </div>
+    <div class="device-panel" id="devicePanelWindows">
+      <div class="guide-grid">
+        <a class="guide-link" id="appHappWindows" href="#" target="_blank" rel="noopener">
+          <span class="guide-link-icon"><svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="4" y="4" width="38" height="38" fill="#00A4EF"/><rect x="46" y="4" width="38" height="38" fill="#00A4EF"/><rect x="4" y="46" width="38" height="38" fill="#00A4EF"/><rect x="46" y="46" width="38" height="38" fill="#00A4EF"/></svg></span>
+          Happ
+          <span class="guide-link-sub">ویندوز 11</span>
+        </a>
       </div>
-      <div class="device-panel" id="devicePanelWindows">
-        <div class="guide-grid">
-          <a class="guide-link" id="appHappWindows" href="#" target="_blank" rel="noopener">
-            <span class="guide-link-icon">🖥️</span>
-            Happ
-            <span class="guide-link-sub">Windows</span>
-          </a>
-        </div>
-      </div>
-      <div class="guide-divider"></div>
-      <p class="guide-title">🎬 راهنمای ویدیویی افزودن کانفیگ</p>
-      <p class="guide-sub">مراحل افزودن کانفیگ خریداری‌شده به اپلیکیشن رو در این ویدیوها ببینید:</p>
-      <div class="crypto-soon">
-        <span class="big-icon">🎬</span>
-        راهنمای ویدیویی افزودن کانفیگ به‌زودی اضافه می‌شود.
-      </div>
+    </div>
+    <div class="guide-divider"></div>
+    <p class="guide-title">🎬 راهنمای ویدیویی افزودن کانفیگ</p>
+    <p class="guide-sub">مراحل افزودن کانفیگ خریداری‌شده به اپلیکیشن رو در این ویدیوها ببینید:</p>
+    <div class="crypto-soon">
+      <span class="big-icon">🎬</span>
+      راهنمای ویدیویی افزودن کانفیگ به‌زودی اضافه می‌شود.
     </div>
   </div>
   <!-- Rules / important notice — moved to the end of the page, after the
@@ -485,6 +506,13 @@
         ⚠️ توجه: این قوانین بخشی از توافق خرید شماست. لطفاً پیش از انتخاب پلن، تمام موارد بالا را با دقت مطالعه کنید. عدم آگاهی از این موارد، مسئولیتی متوجه فروشنده نمی‌کند.
       </div>
     </div>
+  </div>
+  <!-- My invites — before the footer/version line -->
+  <div class="invite-box">
+    <p class="invite-title">🎁 دعوت‌های من</p>
+    <p class="invite-desc">با دعوت دوستانتون به MBS Online، به‌ازای هر ۶ دعوت موفق، یک اشتراک ۵ گیگ ۳۰ روزه به‌صورت هدیه براتون فعال می‌شه!</p>
+    <p class="invite-count" id="inviteCount"></p>
+    <button class="invite-share-btn" id="inviteShareBtn" type="button">🔗 اشتراک‌گذاری لینک دعوت من</button>
   </div>
   <p class="footer-note">MBS Online — نسخه 2.0</p>
 </div>
@@ -533,12 +561,12 @@
   // Invite link: a real feature (not "coming soon") — builds a referral
   // deep-link carrying this user's Telegram id as the /start payload, and
   // opens Telegram's native share sheet (or copies it, as a fallback).
+  // Shared by both the profile-menu item and the "دعوت‌های من" box button.
   const BOT_USERNAME = 'mbsvpn_bot';
-  document.getElementById('menuInvite').addEventListener('click', () => {
-    toggleProfileMenu(false);
+  function openInviteShare() {
     if (!user?.id) { showComingSoon('لینک دعوت'); return; }
     const inviteLink = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
-    const shareText = 'با این لینک به MBS Online بپیوند 🚀';
+    const shareText = 'با این لینک به MBS Online بپیوند 🚀 هر ۶ دعوت موفق = یک اشتراک ۵ گیگ ۳۰ روزه هدیه!';
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(shareText)}`);
     } else if (navigator.clipboard) {
@@ -548,7 +576,9 @@
     } else {
       tg?.showAlert ? tg.showAlert(inviteLink) : alert(inviteLink);
     }
-  });
+  }
+  document.getElementById('menuInvite').addEventListener('click', () => { toggleProfileMenu(false); openInviteShare(); });
+  document.getElementById('inviteShareBtn').addEventListener('click', () => openInviteShare());
 
   /* ---------- App download / video guide links ---------- */
   const APP_LINKS = {
@@ -561,18 +591,6 @@
   document.getElementById('appV2boxAndroid').href = APP_LINKS.v2boxAndroid;
   document.getElementById('appV2raytunAndroid').href = APP_LINKS.v2raytunAndroid;
   document.getElementById('appHappWindows').href = APP_LINKS.happWindows;
-
-  /* ---------- Required-apps section: collapsible, like the plan picker ---------- */
-  const guideTrigger = document.getElementById('guideTrigger');
-  const guideBody = document.getElementById('guideBody');
-  let guideOpen = false;
-  function toggleGuide(forceOpen) {
-    guideOpen = typeof forceOpen === 'boolean' ? forceOpen : !guideOpen;
-    guideBody.classList.toggle('open', guideOpen);
-    guideTrigger.classList.toggle('open', guideOpen);
-    guideTrigger.setAttribute('aria-expanded', String(guideOpen));
-  }
-  guideTrigger.addEventListener('click', () => toggleGuide());
 
   /* ---------- Device-type tabs (Android / iPhone / Windows) ---------- */
   const deviceTabs = document.getElementById('deviceTabs');
@@ -647,6 +665,29 @@
       })
     }).catch(() => { /* silent — logging failure shouldn't affect the app */ });
   }
+  /* ---------- Live "my invites" counter (best-effort) ----------
+     A plain GET (not the no-cors POST pattern used above) so the
+     response can actually be read back — see doGet/handleReferralCountQuery_
+     on the Apps Script side. If this fails for any reason (network,
+     CORS, etc.) the counter box just stays hidden — nothing else on the
+     page depends on it. */
+  const inviteCountEl = document.getElementById('inviteCount');
+  if (user?.id && initData && inviteCountEl) {
+    fetch(`${VISIT_LOG_URL}?action=referral_count&initData=${encodeURIComponent(initData)}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res || !res.ok) return;
+        const remaining = res.remainingToNextGift;
+        let text = `👥 دعوت‌های موفق شما: ${res.count.toLocaleString('fa-IR')}`;
+        if (res.giftsEarned > 0) {
+          text += ` — 🎁 ${res.giftsEarned.toLocaleString('fa-IR')} هدیه گرفتید`;
+        }
+        text += `\nتا هدیه بعدی: ${remaining.toLocaleString('fa-IR')} دعوت دیگه`;
+        inviteCountEl.textContent = text;
+        inviteCountEl.classList.add('show');
+      })
+      .catch(() => { /* best-effort — leave the counter hidden on failure */ });
+  }
   /* Note: tg.sendData() is intentionally NOT called here — Telegram closes
      the Mini App the instant sendData() runs, so it can only be used on a
      final, deliberate action (like a "submit" button), never on page load. */
@@ -665,16 +706,18 @@
     { name: 'برزیل',     flag: '🇧🇷' }
   ];
   const locTrack = document.getElementById('locTrack');
-  const locPrevBtn = document.getElementById('locPrev');
-  const locNextBtn = document.getElementById('locNext');
-  locations.forEach((loc) => {
-    const chip = document.createElement('div');
-    chip.className = 'loc-chip';
-    chip.innerHTML = `<span class="flag">${loc.flag}</span><span class="name">${loc.name}</span>`;
-    locTrack.appendChild(chip);
-  });
-  locPrevBtn.addEventListener('click', () => locTrack.scrollBy({ left: -140, behavior: 'smooth' }));
-  locNextBtn.addEventListener('click', () => locTrack.scrollBy({ left: 140, behavior: 'smooth' }));
+  const locMarquee = document.getElementById('locMarquee');
+  // Render the location list TWICE back-to-back, then animate the track
+  // from translateX(0) to translateX(-50%) — since the duplicate starts
+  // exactly halfway through, the loop is seamless and can run forever.
+  const locChipsHtml = locations
+    .map((loc) => `<div class="loc-chip"><span class="flag">${loc.flag}</span><span class="name">${loc.name}</span></div>`)
+    .join('');
+  locTrack.innerHTML = locChipsHtml + locChipsHtml;
+  // :hover already pauses on desktop — touch devices have no hover, so
+  // pause explicitly while the user's finger is on the marquee.
+  locMarquee.addEventListener('touchstart', () => locMarquee.classList.add('paused'), { passive: true });
+  locMarquee.addEventListener('touchend', () => locMarquee.classList.remove('paused'), { passive: true });
   /* ---------- Plans ---------- */
   const plans = [
     { id: 'trial',    label: 'پلن تستی - 1 گیگ 2 روزه - ۵۰٬۰۰۰ تومان',      icon: '➕', price: 50000,  cls: 'trial' },
@@ -762,9 +805,12 @@
     const total = (selectedPlan?.price || 0) + addonTotalPrice();
     payAmountEl.textContent = total.toLocaleString('fa-IR');
     const addonCost = addonTotalPrice();
-    addonTotalNote.textContent = addonCost > 0
-      ? `هزینه افزودنی‌ها: ${addonCost.toLocaleString('fa-IR')} تومان`
-      : '';
+    if (addonCost > 0) {
+      addonTotalNote.innerHTML = `هزینه افزودنی‌ها: <b>${addonCost.toLocaleString('fa-IR')}</b> تومان`;
+      addonTotalNote.classList.add('show');
+    } else {
+      addonTotalNote.classList.remove('show');
+    }
   }
   function updateVolUI() {
     volValueEl.textContent = extraVolume > 0 ? `${extraVolume.toLocaleString('fa-IR')} گیگ` : 'غیرفعال';

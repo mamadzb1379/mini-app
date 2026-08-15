@@ -50,6 +50,11 @@
   .loc-marquee{
     position:relative; overflow:hidden; background:var(--card);
     border:1px solid var(--line); border-radius:16px; padding:10px 0;
+    /* The page is dir="rtl" — without forcing this container itself to
+       ltr too, an overflowing child anchors to its RIGHT edge instead of
+       its left, which threw off the whole translateX(-50%) loop math and
+       made the track look "stuck" on the last item instead of cycling. */
+    direction:ltr;
   }
   .loc-marquee-track{
     display:flex; gap:22px; width:max-content; direction:ltr;

@@ -271,6 +271,23 @@
     font-family:inherit; font-size:14px; font-weight:900; cursor:pointer;
   }
   .invite-share-btn:active{filter:brightness(.95);}
+  /* Wallet box — balance + top-up card */
+  .wallet-box{margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; text-align:center;}
+  .wallet-title{font-weight:900; font-size:15px; margin:0 0 8px;}
+  .wallet-balance-line{font-size:15px; font-weight:800; margin:0 0 8px;}
+  .wallet-balance-line b{font-weight:900;}
+  .wallet-desc{font-size:12.5px; color:var(--hint); line-height:1.9; margin:0 0 14px;}
+  .wallet-amounts{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px;}
+  .wallet-amount-btn{
+    padding:10px 4px; border-radius:12px; border:1px solid var(--line); background:var(--bg);
+    color:var(--text); font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;
+  }
+  .wallet-amount-btn.active{background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
+  .wallet-custom-input{
+    width:100%; padding:11px 12px; border-radius:12px; border:1px solid var(--line); background:var(--bg);
+    color:var(--text); font-family:inherit; font-size:13.5px; margin-bottom:14px; text-align:center;
+  }
+  .wallet-custom-input::placeholder{color:var(--hint);}
   /* Top-left profile button + dropdown menu */
   .top-bar{position:relative; height:40px; margin-bottom:8px;}
   .profile-btn{
@@ -300,7 +317,7 @@
   <div class="top-bar">
     <button class="profile-btn" id="profileBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="پروفایل">👤</button>
     <ul class="profile-menu" id="profileMenu" role="menu">
-      <li class="profile-menu-item" id="menuWallet" role="menuitem"><span class="pmi-icon">👛</span> کیف پول من <span class="pmi-soon">به‌زودی</span></li>
+      <li class="profile-menu-item" id="menuWallet" role="menuitem"><span class="pmi-icon">👛</span> کیف پول من</li>
       <li class="profile-menu-item" id="menuMySubs" role="menuitem"><span class="pmi-icon">📦</span> اشتراک‌های من <span class="pmi-soon">به‌زودی</span></li>
       <li class="profile-menu-item" id="menuInvite" role="menuitem"><span class="pmi-icon">🔗</span> لینک دعوت</li>
       <li class="profile-menu-item" id="menuCollab" role="menuitem"><span class="pmi-icon">🤝</span> همکاری با MBS <span class="pmi-soon">به‌زودی</span></li>
@@ -315,8 +332,8 @@
     </div>
     <div class="summary-divider"></div>
     <div class="summary-part">
-      <div class="num">👛 کیف پول</div>
-      <div class="lbl">به‌زودی</div>
+      <div class="num" id="walletBalanceText">👛 —</div>
+      <div class="lbl" id="walletBalanceLbl">در حال دریافت…</div>
     </div>
   </div>
   <!-- Location marquee: now placed directly above the plan picker,
@@ -380,6 +397,7 @@
     <p class="pay-title">💳 پرداخت</p>
     <div class="pay-methods">
       <button class="pay-method-btn active" id="payMethodCardBtn" type="button">کارت‌به‌کارت</button>
+      <button class="pay-method-btn" id="payMethodWalletBtn" type="button">👛 کیف پول</button>
       <button class="pay-method-btn" id="payMethodCryptoBtn" type="button">
         استارز / ارز دیجیتال <span class="soon-badge">به‌زودی</span>
       </button>
@@ -413,6 +431,12 @@
       <button class="pay-confirm-btn" id="payConfirmBtn" type="button">ارسال رسید پرداخت</button>
       <p class="cooldown-note" id="cooldownNote"></p>
       <p class="pay-status" id="payStatus">✅ خرید شما با موفقیت ثبت شد. لطفاً برای بررسی صبوری بفرمایید.</p>
+    </div>
+    <div class="pay-method-panel" id="payMethodWalletPanel">
+      <p class="pay-amount"><span class="amount-label">موجودی فعلی شما</span><b id="walletCurrentBalanceText">—</b> تومان</p>
+      <p class="pay-note" id="walletPayNote"></p>
+      <button class="pay-confirm-btn" id="walletPayConfirmBtn" type="button">پرداخت از کیف پول</button>
+      <p class="pay-status" id="walletPayStatus"></p>
     </div>
     <div class="pay-method-panel" id="payMethodCryptoPanel">
       <div class="crypto-soon">
@@ -512,6 +536,45 @@
       </div>
     </div>
   </div>
+  <!-- Wallet: balance + top-up (receipt reviewed/approved by admin) -->
+  <div class="wallet-box" id="walletBox">
+    <p class="wallet-title">👛 کیف پول من</p>
+    <p class="wallet-balance-line">موجودی فعلی: <b id="walletBoxBalance">—</b> تومان</p>
+    <p class="wallet-desc">کیف پول رو شارژ کنید تا موقع خرید پلن، به‌جای ارسال رسید، مستقیم و آنی از موجودی‌تون پرداخت کنید.</p>
+    <div class="wallet-amounts" id="walletAmounts">
+      <button type="button" class="wallet-amount-btn" data-amount="50000">۵۰,۰۰۰</button>
+      <button type="button" class="wallet-amount-btn" data-amount="100000">۱۰۰,۰۰۰</button>
+      <button type="button" class="wallet-amount-btn" data-amount="200000">۲۰۰,۰۰۰</button>
+      <button type="button" class="wallet-amount-btn" data-amount="500000">۵۰۰,۰۰۰</button>
+    </div>
+    <input type="number" id="walletCustomAmount" class="wallet-custom-input" placeholder="یا مبلغ دلخواه (تومان)" inputmode="numeric" min="1000" step="1000">
+    <div class="pay-cards">
+      <div class="pay-card">
+        <div class="card-top">
+          <div class="bank-name">بانک سامان</div>
+          <div class="chip"></div>
+        </div>
+        <div class="card-number">6219-8614-7779-5727</div>
+        <div class="card-holder">به نام: محمد بهمنش</div>
+        <button class="copy-btn card-copy-btn" type="button" data-num="6219861477795727">📋 کپی شماره کارت</button>
+      </div>
+      <div class="pay-card alt">
+        <div class="card-top">
+          <div class="bank-name">بانک ملی</div>
+          <div class="chip"></div>
+        </div>
+        <div class="card-number">6037-9981-9321-0035</div>
+        <div class="card-holder">به نام: سهیل سخندان</div>
+        <button class="copy-btn card-copy-btn" type="button" data-num="6037998193210035">📋 کپی شماره کارت</button>
+      </div>
+    </div>
+    <input type="file" id="walletReceiptInput" accept="image/*" style="display:none;">
+    <button class="copy-btn" id="walletPickReceiptBtn" type="button">📎 انتخاب تصویر رسید</button>
+    <p class="pay-note" id="walletReceiptFileName" style="display:none; margin-bottom:14px;"></p>
+    <button class="invite-share-btn" id="walletTopupBtn" type="button">ارسال درخواست شارژ</button>
+    <p class="cooldown-note" id="walletCooldownNote"></p>
+    <p class="pay-status" id="walletTopupStatus">✅ درخواست شارژ ثبت شد. بعد از تأیید ادمین، موجودی‌تون به‌روزرسانی می‌شه.</p>
+  </div>
   <!-- My invites — before the footer/version line -->
   <div class="invite-box">
     <p class="invite-title">🎁 دعوت‌های من</p>
@@ -560,7 +623,10 @@
     const msg = `${label} به‌زودی فعال می‌شود 🙏`;
     tg?.showAlert ? tg.showAlert(msg) : alert(msg);
   }
-  document.getElementById('menuWallet').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('کیف پول من'); });
+  document.getElementById('menuWallet').addEventListener('click', () => {
+    toggleProfileMenu(false);
+    document.getElementById('walletBox')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   document.getElementById('menuMySubs').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('اشتراک‌های من'); });
   document.getElementById('menuCollab').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('همکاری با MBS'); });
   // Invite link: a real feature (not "coming soon") — builds a referral
@@ -693,6 +759,53 @@
       })
       .catch(() => { /* best-effort — leave the counter hidden on failure */ });
   }
+  /* ---------- Wallet: live balance (best-effort) ----------
+     Same GET pattern as the referral counter above — a plain GET is a
+     CORS "simple request" so the JSON response can actually be read.
+     If this fails (network, wallet sheet not set up yet on the Apps
+     Script side, etc.) the balance displays just show a neutral
+     placeholder — nothing else on the page depends on it. */
+  const walletBalanceTextEl = document.getElementById('walletBalanceText');
+  const walletBalanceLblEl = document.getElementById('walletBalanceLbl');
+  const walletBoxBalanceEl = document.getElementById('walletBoxBalance');
+  const walletCurrentBalanceTextEl = document.getElementById('walletCurrentBalanceText');
+  let currentWalletBalance = null;
+  function updateWalletDisplays() {
+    const known = currentWalletBalance !== null;
+    if (walletBalanceTextEl) {
+      walletBalanceTextEl.textContent = known ? `👛 ${currentWalletBalance.toLocaleString('fa-IR')}` : '👛 —';
+    }
+    if (walletBalanceLblEl) {
+      walletBalanceLblEl.textContent = known ? 'موجودی کیف پول (تومان)' : 'در حال دریافت…';
+    }
+    if (walletBoxBalanceEl) {
+      walletBoxBalanceEl.textContent = known ? currentWalletBalance.toLocaleString('fa-IR') : '—';
+    }
+    if (walletCurrentBalanceTextEl) {
+      walletCurrentBalanceTextEl.textContent = known ? currentWalletBalance.toLocaleString('fa-IR') : '—';
+    }
+    refreshWalletPayPanel();
+  }
+  function fetchWalletBalance() {
+    if (!user?.id || !initData) {
+      if (walletBalanceLblEl) walletBalanceLblEl.textContent = 'برای دیدن موجودی، از داخل تلگرام باز کنید';
+      return;
+    }
+    fetch(`${VISIT_LOG_URL}?action=wallet_balance&initData=${encodeURIComponent(initData)}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res || !res.ok) {
+          if (walletBalanceLblEl) walletBalanceLblEl.textContent = 'موجودی در حال حاضر در دسترس نیست';
+          return;
+        }
+        currentWalletBalance = Number(res.balance) || 0;
+        updateWalletDisplays();
+      })
+      .catch(() => {
+        if (walletBalanceLblEl) walletBalanceLblEl.textContent = 'موجودی در حال حاضر در دسترس نیست';
+      });
+  }
+  fetchWalletBalance();
   /* Note: tg.sendData() is intentionally NOT called here — Telegram closes
      the Mini App the instant sendData() runs, so it can only be used on a
      final, deliberate action (like a "submit" button), never on page load. */
@@ -816,6 +929,7 @@
     } else {
       addonTotalNote.classList.remove('show');
     }
+    refreshWalletPayPanel();
   }
   function updateVolUI() {
     volValueEl.textContent = extraVolume > 0 ? `${extraVolume.toLocaleString('fa-IR')} گیگ` : 'غیرفعال';
@@ -864,19 +978,101 @@
   });
   /* ---------- Payment ---------- */
   const payMethodCardBtn = document.getElementById('payMethodCardBtn');
+  const payMethodWalletBtn = document.getElementById('payMethodWalletBtn');
   const payMethodCryptoBtn = document.getElementById('payMethodCryptoBtn');
   const payMethodCardPanel = document.getElementById('payMethodCardPanel');
+  const payMethodWalletPanel = document.getElementById('payMethodWalletPanel');
   const payMethodCryptoPanel = document.getElementById('payMethodCryptoPanel');
+  const walletPayNoteEl = document.getElementById('walletPayNote');
+  const walletPayConfirmBtn = document.getElementById('walletPayConfirmBtn');
+  const walletPayStatusEl = document.getElementById('walletPayStatus');
+  let currentPayMethod = 'card';
   function setPayMethod(method) {
-    const isCard = method === 'card';
-    payMethodCardBtn.classList.toggle('active', isCard);
-    payMethodCryptoBtn.classList.toggle('active', !isCard);
-    payMethodCardPanel.classList.toggle('active', isCard);
-    payMethodCryptoPanel.classList.toggle('active', !isCard);
+    currentPayMethod = method;
+    payMethodCardBtn.classList.toggle('active', method === 'card');
+    payMethodWalletBtn.classList.toggle('active', method === 'wallet');
+    payMethodCryptoBtn.classList.toggle('active', method === 'crypto');
+    payMethodCardPanel.classList.toggle('active', method === 'card');
+    payMethodWalletPanel.classList.toggle('active', method === 'wallet');
+    payMethodCryptoPanel.classList.toggle('active', method === 'crypto');
+    if (method === 'wallet') refreshWalletPayPanel();
     tg?.HapticFeedback?.selectionChanged();
   }
   payMethodCardBtn.addEventListener('click', () => setPayMethod('card'));
+  payMethodWalletBtn.addEventListener('click', () => setPayMethod('wallet'));
   payMethodCryptoBtn.addEventListener('click', () => setPayMethod('crypto'));
+  // Keeps the wallet pay-panel (enabled/disabled state + message) in sync
+  // with the currently selected plan/addons and the last-known wallet
+  // balance. Called on plan/addon change, on balance refresh, and when the
+  // wallet tab is opened — safe to call at any time, even before a plan
+  // has been picked or the balance has loaded yet.
+  function refreshWalletPayPanel() {
+    if (!walletPayConfirmBtn || !walletPayNoteEl) return;
+    const total = (selectedPlan?.price || 0) + addonTotalPrice();
+    if (!selectedPlan) {
+      walletPayNoteEl.textContent = 'ابتدا یک پلن انتخاب کنید.';
+      walletPayConfirmBtn.disabled = true;
+      return;
+    }
+    if (currentWalletBalance === null) {
+      walletPayNoteEl.textContent = 'در حال دریافت موجودی…';
+      walletPayConfirmBtn.disabled = true;
+      return;
+    }
+    if (currentWalletBalance < total) {
+      const shortfall = total - currentWalletBalance;
+      walletPayNoteEl.textContent = `موجودی کیف پول کافی نیست. ${shortfall.toLocaleString('fa-IR')} تومان دیگر لازم دارید — ابتدا از بخش «کیف پول من» شارژ کنید.`;
+      walletPayConfirmBtn.disabled = true;
+    } else {
+      walletPayNoteEl.textContent = `با تأیید، مبلغ ${total.toLocaleString('fa-IR')} تومان بلافاصله از موجودی کیف پول شما کسر می‌شود.`;
+      walletPayConfirmBtn.disabled = false;
+    }
+  }
+  walletPayConfirmBtn.addEventListener('click', async () => {
+    if (!selectedPlan) return;
+    const total = (selectedPlan?.price || 0) + addonTotalPrice();
+    if (currentWalletBalance === null || currentWalletBalance < total) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      refreshWalletPayPanel();
+      return;
+    }
+    walletPayConfirmBtn.disabled = true;
+    walletPayConfirmBtn.textContent = 'در حال پرداخت…';
+    walletPayStatusEl.classList.remove('show');
+    try {
+      const invoiceNumber = generateInvoiceNumber();
+      const params = new URLSearchParams({
+        action: 'wallet_purchase',
+        initData,
+        planId: selectedPlan.id,
+        planLabel: selectedPlan.label,
+        extraVolumeGB: String(extraVolume),
+        extraDays: String(extraDays),
+        invoiceNumber
+      });
+      const res = await fetch(`${VISIT_LOG_URL}?${params.toString()}`).then((r) => r.json());
+      if (res && res.ok) {
+        currentWalletBalance = Number(res.newBalance);
+        updateWalletDisplays();
+        tg?.HapticFeedback?.notificationOccurred('success');
+        walletPayStatusEl.textContent = '✅ خرید با موفقیت از کیف پول شما پرداخت شد. پشتیبانی به‌زودی کانفیگ رو براتون ارسال می‌کنه.';
+        walletPayStatusEl.classList.add('show');
+        walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
+      } else if (res && res.error === 'insufficient_balance') {
+        currentWalletBalance = Number(res.balance) || currentWalletBalance;
+        tg?.HapticFeedback?.notificationOccurred('error');
+        walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
+        refreshWalletPayPanel();
+      } else {
+        throw new Error((res && res.error) || 'unknown');
+      }
+    } catch (err) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      tg?.showAlert ? tg.showAlert('پرداخت با خطا مواجه شد، دوباره تلاش کنید.') : alert('پرداخت با خطا مواجه شد، دوباره تلاش کنید.');
+      walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
+      refreshWalletPayPanel();
+    }
+  });
   document.querySelectorAll('.card-copy-btn').forEach((btn) => {
     const originalLabel = btn.textContent;
     btn.addEventListener('click', () => {
@@ -982,6 +1178,146 @@
     });
   }
   refreshCooldownUI();
+
+  /* ---------- Wallet top-up ---------- */
+  const walletAmountsEl = document.getElementById('walletAmounts');
+  const walletCustomAmountEl = document.getElementById('walletCustomAmount');
+  const walletReceiptInput = document.getElementById('walletReceiptInput');
+  const walletPickReceiptBtn = document.getElementById('walletPickReceiptBtn');
+  const walletReceiptFileName = document.getElementById('walletReceiptFileName');
+  const walletTopupBtn = document.getElementById('walletTopupBtn');
+  const walletCooldownNoteEl = document.getElementById('walletCooldownNote');
+  const walletTopupStatusEl = document.getElementById('walletTopupStatus');
+  let selectedTopupAmount = 0;
+  let walletReceiptFile = null;
+
+  walletAmountsEl.querySelectorAll('.wallet-amount-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      selectedTopupAmount = parseInt(btn.dataset.amount, 10) || 0;
+      walletAmountsEl.querySelectorAll('.wallet-amount-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      walletCustomAmountEl.value = '';
+      tg?.HapticFeedback?.selectionChanged();
+    });
+  });
+  walletCustomAmountEl.addEventListener('input', () => {
+    const val = parseInt(walletCustomAmountEl.value, 10) || 0;
+    selectedTopupAmount = val > 0 ? val : 0;
+    walletAmountsEl.querySelectorAll('.wallet-amount-btn').forEach((b) => b.classList.remove('active'));
+  });
+
+  walletPickReceiptBtn.addEventListener('click', () => walletReceiptInput.click());
+  walletReceiptInput.addEventListener('change', () => {
+    walletReceiptFile = walletReceiptInput.files?.[0] || null;
+    if (walletReceiptFile) {
+      walletReceiptFileName.textContent = `📎 ${walletReceiptFile.name}`;
+      walletReceiptFileName.style.display = 'block';
+      walletPickReceiptBtn.textContent = '📎 تغییر تصویر رسید';
+    }
+  });
+
+  // A separate cooldown from the purchase-receipt one above — a user
+  // shouldn't be able to spam top-up requests either, but the two flows
+  // are independent so they get independent cooldown keys/windows.
+  const WALLET_TOPUP_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+  const WALLET_TOPUP_COOLDOWN_KEY = 'last_wallet_topup_sent_at';
+  let walletCooldownTimer = null;
+
+  function getWalletTopupCooldownRemaining(callback) {
+    if (!tg?.CloudStorage) { callback(0); return; }
+    tg.CloudStorage.getItem(WALLET_TOPUP_COOLDOWN_KEY, (err, value) => {
+      if (err || !value) { callback(0); return; }
+      const lastTs = parseInt(value, 10) || 0;
+      const remaining = WALLET_TOPUP_COOLDOWN_MS - (Date.now() - lastTs);
+      callback(Math.max(0, remaining));
+    });
+  }
+  function markWalletTopupSentNow() {
+    tg?.CloudStorage?.setItem(WALLET_TOPUP_COOLDOWN_KEY, String(Date.now()), () => {});
+  }
+  function refreshWalletTopupCooldownUI() {
+    getWalletTopupCooldownRemaining((remaining) => {
+      if (walletCooldownTimer) { clearInterval(walletCooldownTimer); walletCooldownTimer = null; }
+      if (remaining <= 0) {
+        walletTopupBtn.disabled = false;
+        walletTopupBtn.textContent = 'ارسال درخواست شارژ';
+        walletCooldownNoteEl.classList.remove('show');
+        return;
+      }
+      walletTopupBtn.disabled = true;
+      const update = () => {
+        getWalletTopupCooldownRemaining((r) => {
+          if (r <= 0) {
+            walletTopupBtn.disabled = false;
+            walletTopupBtn.textContent = 'ارسال درخواست شارژ';
+            walletCooldownNoteEl.classList.remove('show');
+            if (walletCooldownTimer) { clearInterval(walletCooldownTimer); walletCooldownTimer = null; }
+            return;
+          }
+          walletTopupBtn.textContent = `صبر کنید… ${formatRemaining(r)}`;
+          walletCooldownNoteEl.textContent = `⏳ برای جلوگیری از ارسال تکراری، هر ۵ دقیقه فقط یک‌بار می‌تونید درخواست شارژ بفرستید. ${formatRemaining(r)} دیگه مونده.`;
+          walletCooldownNoteEl.classList.add('show');
+        });
+      };
+      update();
+      walletCooldownTimer = setInterval(update, 1000);
+    });
+  }
+  refreshWalletTopupCooldownUI();
+
+  walletTopupBtn.addEventListener('click', async () => {
+    if (!selectedTopupAmount || selectedTopupAmount < 1000) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      const msg = 'لطفاً یک مبلغ (از دکمه‌ها یا به‌صورت دلخواه) برای شارژ انتخاب کنید.';
+      tg?.showAlert ? tg.showAlert(msg) : alert(msg);
+      return;
+    }
+    if (!walletReceiptFile) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      const msg = 'لطفاً ابتدا تصویر رسید واریز را انتخاب کنید.';
+      tg?.showAlert ? tg.showAlert(msg) : alert(msg);
+      return;
+    }
+    const remaining = await new Promise((resolve) => getWalletTopupCooldownRemaining(resolve));
+    if (remaining > 0) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      const msg = `شما به‌تازگی درخواست شارژ ارسال کردید. لطفاً ${formatRemaining(remaining)} دیگه صبر کنید و دوباره تلاش کنید.`;
+      tg?.showAlert ? tg.showAlert(msg) : alert(msg);
+      refreshWalletTopupCooldownUI();
+      return;
+    }
+    walletTopupBtn.disabled = true;
+    walletTopupBtn.textContent = 'در حال ارسال…';
+    try {
+      const imageBase64 = await fileToBase64(walletReceiptFile);
+      const invoiceNumber = generateInvoiceNumber();
+      await fetch(PURCHASE_LOG_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          type: 'wallet_topup',
+          invoiceNumber,
+          amount: selectedTopupAmount,
+          userId: user?.id || '',
+          username: user?.username || '',
+          firstName: user?.first_name || '',
+          lastName: user?.last_name || '',
+          imageBase64,
+          imageMimeType: walletReceiptFile.type || '',
+          initData
+        })
+      });
+      markWalletTopupSentNow();
+      tg?.HapticFeedback?.notificationOccurred('success');
+      walletTopupStatusEl.classList.add('show');
+      refreshWalletTopupCooldownUI();
+    } catch (err) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      tg?.showAlert ? tg.showAlert('ارسال درخواست شارژ با خطا مواجه شد، دوباره تلاش کنید.') : alert('ارسال درخواست شارژ با خطا مواجه شد، دوباره تلاش کنید.');
+      walletTopupBtn.disabled = false;
+      walletTopupBtn.textContent = 'ارسال درخواست شارژ';
+    }
+  });
 
   payConfirmBtn.addEventListener('click', async () => {
     if (!receiptFile) {

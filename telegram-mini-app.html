@@ -285,9 +285,22 @@
   .wallet-amount-btn.active{background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
   .wallet-custom-input{
     width:100%; padding:11px 12px; border-radius:12px; border:1px solid var(--line); background:var(--bg);
-    color:var(--text); font-family:inherit; font-size:13.5px; margin-bottom:14px; text-align:center;
+    color:var(--text); font-family:inherit; font-size:15px; font-weight:800; margin-bottom:14px; text-align:center;
+    /* Same fix as .card-number: this page is dir="rtl", and a plain
+       number input left at the page's base direction renders/positions
+       typed digits oddly (cursor jumps, digits feel "backwards") — force
+       ltr on the input itself so digits type and display normally, like
+       every other numeric field in the app. The Persian placeholder text
+       still renders correctly since browsers shape embedded RTL runs
+       regardless of the element's base direction. */
+    direction:ltr;
   }
-  .wallet-custom-input::placeholder{color:var(--hint);}
+  .wallet-custom-input::placeholder{color:var(--hint); font-weight:600; direction:rtl;}
+  /* Hide the native up/down number-spinner arrows so the field matches
+     the plain, borderless-looking numeric style used elsewhere. */
+  .wallet-custom-input::-webkit-outer-spin-button,
+  .wallet-custom-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .wallet-custom-input[type="number"]{ -moz-appearance:textfield; }
   /* Top-left profile button + dropdown menu */
   .top-bar{position:relative; height:40px; margin-bottom:8px;}
   .profile-btn{

@@ -9,18 +9,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: var(--tg-theme-bg-color, #F6F1EC);
-    --text: var(--tg-theme-text-color, #241E1A);
-    --hint: var(--tg-theme-hint-color, #9C8F84);
-    --accent: var(--tg-theme-button-color, #C9622D);
-    --accent-text: var(--tg-theme-button-text-color, #FFFFFF);
-    --card: var(--tg-theme-secondary-bg-color, #FFFFFF);
-    --line: #E7DED4;
-    --plan-blue: #2E7CE0;
-    --plan-green: #33A852;
-    --warn-bg: #FFF6E5;
-    --warn-border: #F0C674;
-    --warn-text: #7A5A00;
+    /* Fixed brand colors — intentionally NOT tied to --tg-theme-* vars, so
+       the mini app always looks the same no matter what theme (light/dark)
+       the user's Telegram or phone is on. */
+    --bg: #4D516D;
+    --text: #FFFFFF;
+    --hint: rgba(255,255,255,.72);
+    --accent: #C9622D;
+    --accent-text: #FFFFFF;
+    --card: #777B7E;
+    --line: #999DA0;
+    --plan-bg-default: #999DA0; /* starter / popular / best / gold plans */
+    --plan-bg-special: #777B7E; /* trial plan + custom-plan option */
+    --warn-bg: #777B7E;
+    --warn-border: #999DA0;
+    --warn-text: #FFFFFF;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Vazirmatn', system-ui, sans-serif; min-height:100vh;}
@@ -29,35 +32,43 @@
   h1{font-size:26px; font-weight:900; margin:0 0 10px; line-height:1.3;}
   .accent-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-inline-start:6px;}
   .brand-welcome{font-size:22px; font-weight:900; text-align:center; margin:0 0 18px; line-height:1.4;}
-  .brand-welcome .brand-name{color:var(--accent);}
+  .brand-welcome .brand-name{color:var(--text);}
   .summary{display:flex; gap:10px; margin-bottom:18px; align-items:stretch;}
   .stat{flex:1; background:var(--card); border-radius:16px; padding:14px; border:1px solid var(--line);}
   .stat .num{font-size:18px; font-weight:900; word-break:break-word;}
   .stat .lbl{font-size:12px; color:var(--hint); margin-top:2px;}
-  /* Location dropdown (now placed above the plan picker) */
-  .loc-picker{position:relative; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-radius:16px;}
-  .loc-trigger{
-    width:100%; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-    gap:2px; padding:14px 16px; border:none; background:none; cursor:pointer; font-family:inherit; text-align:right;
+  /* Location slider (now placed above the plan picker) — a light,
+     non-intrusive horizontal slider with arrow buttons, instead of a
+     dropdown that has to be opened/closed. */
+  .loc-section{margin-bottom:16px;}
+  .section-label{font-size:13px; font-weight:900; color:var(--text); margin:0 0 8px; opacity:.9;}
+  .loc-slider{
+    display:flex; align-items:center; gap:6px; background:var(--card);
+    border:1px solid var(--line); border-radius:16px; padding:8px;
   }
-  .loc-trigger .num{display:flex; align-items:center; gap:4px; font-size:15px; font-weight:900;}
-  .loc-trigger .chevron{margin-inline-start:auto; color:var(--hint); transition:transform .18s ease;}
-  .loc-trigger.open .chevron{transform:rotate(180deg)}
-  .loc-flags{font-size:13px; letter-spacing:1px;}
-  .loc-list{
-    position:absolute; top:calc(100% + 6px); right:0; left:0; z-index:20;
-    list-style:none; margin:0; padding:8px; border-radius:14px;
-    background:var(--card); border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.12);
-    max-height:0; overflow:hidden; opacity:0; transition:max-height .22s ease, opacity .18s ease;
+  .loc-arrow{
+    flex:none; width:30px; height:30px; border-radius:50%; border:1px solid var(--line); background:var(--bg);
+    color:var(--text); font-size:16px; font-weight:900; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; padding:0; font-family:inherit; line-height:1;
   }
-  .loc-list.open{max-height:320px; overflow-y:auto; opacity:1;}
-  .loc-item{display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; font-size:13.5px; cursor:pointer;}
-  .loc-item:hover, .loc-item:active{background:var(--bg);}
-  .loc-item .flag{font-size:16px;}
-  /* Rules / warning box */
+  .loc-arrow:active{filter:brightness(1.15);}
+  .loc-track-wrap{flex:1; overflow:hidden;}
+  .loc-track{
+    display:flex; gap:16px; overflow-x:auto; scroll-behavior:smooth; scroll-snap-type:x proximity;
+    padding:4px 4px; direction:ltr; -ms-overflow-style:none; scrollbar-width:none;
+  }
+  .loc-track::-webkit-scrollbar{display:none;}
+  .loc-chip{
+    flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    min-width:56px; scroll-snap-align:start;
+  }
+  .loc-chip .flag{font-size:24px; line-height:1;}
+  .loc-chip .name{font-size:11px; font-weight:700; color:var(--text); white-space:nowrap;}
+  /* Rules / notice box — same default card style as the rest of the app,
+     intentionally not a special "warning" look. */
   .rules-box{
-    background:var(--warn-bg); border:1.5px solid var(--warn-border); border-radius:16px;
-    padding:16px; margin-bottom:16px; color:var(--warn-text);
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:16px; margin-bottom:16px; color:var(--text); margin-top:16px;
   }
   .rules-title{display:flex; align-items:center; gap:8px; font-weight:900; font-size:15px; margin:0 0 10px;}
   .rules-title .warn-icon{font-size:18px;}
@@ -67,12 +78,11 @@
   .rules-list li{display:flex; gap:6px; align-items:flex-start;}
   .rules-list li::before{content:"•"; flex:none;}
   .rules-note{font-size:13px; line-height:1.9; margin:8px 0 0;}
-  .rules-divider{height:1px; background:var(--warn-border); margin:12px 0; opacity:.7;}
+  .rules-divider{height:1px; background:var(--line); margin:12px 0; opacity:.7;}
   .rules-warn-final{
     display:flex; gap:8px; align-items:flex-start; font-size:13px; font-weight:700; margin-top:12px;
-    background:rgba(255,255,255,.5); border-radius:10px; padding:10px 12px;
+    background:rgba(0,0,0,.04); border-radius:10px; padding:10px 12px;
   }
-  .unlimited-block h3, .unlimited-block .rules-note{color:#9ed49e;}
   /* Plan dropdown */
   .plan-picker{position:relative; margin-bottom:16px;}
   .plan-trigger{
@@ -97,12 +107,12 @@
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:16px 18px; border-radius:16px; border:none; cursor:pointer;
     font-family:inherit; text-align:right; width:100%;
-    color:#fff; background:var(--plan-blue);
+    color:#fff; background:var(--plan-bg-default);
     box-shadow:0 2px 0 rgba(0,0,0,.08) inset;
   }
   .plan-item:active{filter:brightness(.95);}
-  .plan-item.trial{background:var(--plan-green);}
-  .plan-item.custom{background:var(--accent); border:2px dashed rgba(255,255,255,.55);}
+  .plan-item.trial{background:var(--plan-bg-special);}
+  .plan-item.custom{background:var(--plan-bg-special); border:2px dashed rgba(255,255,255,.55);}
   .plan-item.selected{outline:2px solid var(--text); outline-offset:2px;}
   .plan-item .plan-label{font-size:15px; font-weight:700; line-height:1.5;}
   .plan-item .plan-icon{flex:none; font-size:19px; line-height:1;}
@@ -150,7 +160,7 @@
     font-size:9.5px; font-weight:900; background:var(--warn-border); color:var(--warn-text);
     border-radius:6px; padding:1px 6px; line-height:1.6;
   }
-  .pay-method-btn.active .soon-badge{background:rgba(255,255,255,.85); color:var(--warn-text);}
+  .pay-method-btn.active .soon-badge{background:rgba(0,0,0,.25); color:#FFFFFF;}
   .pay-method-panel{display:none;}
   .pay-method-panel.active{display:block;}
   .pay-cards{display:flex; flex-direction:column; gap:12px; margin-bottom:12px;}
@@ -196,12 +206,26 @@
     font-family:inherit; font-size:14.5px; font-weight:900; cursor:pointer;
   }
   .pay-confirm-btn:disabled{opacity:.55; cursor:not-allowed;}
-  .pay-status{margin-top:10px; font-size:13px; text-align:center; color:var(--plan-green); font-weight:800; display:none;}
+  .pay-status{margin-top:10px; font-size:13px; text-align:center; color:var(--text); font-weight:800; display:none;}
   .pay-status.show{display:block;}
   .cooldown-note{margin-top:10px; font-size:12.5px; text-align:center; color:var(--warn-text); font-weight:700; display:none; background:var(--warn-bg); border:1px solid var(--warn-border); border-radius:10px; padding:8px 10px;}
   .cooldown-note.show{display:block;}
-  /* Apps + video guide section */
+  /* Apps + video guide section — collapsible, same interaction pattern as
+     the plan picker (tap to expand, chevron rotates). */
   .guide-section{margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
+  .guide-trigger{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border:none; background:none; padding:0; margin:0; cursor:pointer; font-family:inherit;
+    text-align:right; color:var(--text);
+  }
+  .guide-trigger-left{display:flex; align-items:center; gap:8px; font-weight:900; font-size:15px;}
+  .guide-trigger .chevron{flex:none; transition:transform .18s ease; color:var(--hint);}
+  .guide-trigger.open .chevron{transform:rotate(180deg);}
+  .guide-body{
+    max-height:0; overflow:hidden; opacity:0;
+    transition:max-height .25s ease, opacity .2s ease;
+  }
+  .guide-body.open{max-height:2400px; opacity:1; margin-top:12px;}
   .guide-title{font-weight:900; font-size:15px; margin:0 0 4px; display:flex; align-items:center; gap:8px;}
   .guide-sub{font-size:12px; color:var(--hint); margin:0 0 12px; line-height:1.7;}
   .guide-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
@@ -225,25 +249,56 @@
   .device-panel{display:none;}
   .device-panel.active{display:block;}
   .footer-note{margin-top:24px; text-align:center; font-size:12px; color:var(--hint); line-height:1.8;}
+  /* Top-left profile button + dropdown menu */
+  .top-bar{position:relative; height:40px; margin-bottom:8px;}
+  .profile-btn{
+    position:absolute; top:0; left:0; width:40px; height:40px; border-radius:50%;
+    border:1px solid var(--line); background:var(--card); color:var(--text);
+    font-size:18px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; padding:0;
+  }
+  .profile-menu{
+    position:absolute; top:calc(100% + 8px); left:0; z-index:30; min-width:200px;
+    list-style:none; margin:0; padding:8px; border-radius:14px;
+    background:var(--card); border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.15);
+    max-height:0; overflow:hidden; opacity:0; transition:max-height .22s ease, opacity .18s ease;
+  }
+  .profile-menu.open{max-height:320px; overflow-y:auto; opacity:1;}
+  .profile-menu-item{
+    display:flex; align-items:center; gap:8px; padding:10px 10px; border-radius:10px;
+    font-size:13.5px; font-weight:700; cursor:pointer; color:var(--text);
+  }
+  .profile-menu-item:hover, .profile-menu-item:active{background:var(--bg);}
+  .profile-menu-item .pmi-icon{font-size:16px; flex:none;}
+  .profile-menu-item .pmi-soon{margin-inline-start:auto; font-size:10px; font-weight:900; color:var(--hint);}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="top-bar">
+    <button class="profile-btn" id="profileBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="پروفایل">👤</button>
+    <ul class="profile-menu" id="profileMenu" role="menu">
+      <li class="profile-menu-item" id="menuWallet" role="menuitem"><span class="pmi-icon">👛</span> کیف پول من <span class="pmi-soon">به‌زودی</span></li>
+      <li class="profile-menu-item" id="menuMySubs" role="menuitem"><span class="pmi-icon">📦</span> اشتراک‌های من <span class="pmi-soon">به‌زودی</span></li>
+      <li class="profile-menu-item" id="menuInvite" role="menuitem"><span class="pmi-icon">🔗</span> لینک دعوت</li>
+      <li class="profile-menu-item" id="menuCollab" role="menuitem"><span class="pmi-icon">🤝</span> همکاری با MBS <span class="pmi-soon">به‌زودی</span></li>
+    </ul>
+  </div>
   <p class="eyebrow" id="greeting">پلن‌های اینترنت</p>
-  <h1>پلن‌های آماده پایه<span class="accent-dot"></span></h1>
   <p class="brand-welcome">به <span class="brand-name">MBS Online</span> خوش آمدید</p>
   <div class="summary">
     <div class="stat"><div class="num id-value" id="userIdText">—</div><div class="lbl">شناسه شما (ID)</div></div>
   </div>
-  <!-- Location dropdown: now placed directly above the plan picker -->
-  <div class="loc-picker" id="locPicker">
-    <button class="loc-trigger" id="locTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-      <span class="num"><span id="locNumText">۱۱ لوکیشن</span><span class="chevron">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span></span>
-      <span class="lbl loc-flags" id="locFlagsPreview"></span>
-    </button>
-    <ul class="loc-list" id="locList" role="listbox"></ul>
+  <!-- Location slider: now placed directly above the plan picker -->
+  <div class="loc-section">
+    <p class="section-label">لوکیشن موجود</p>
+    <div class="loc-slider" id="locSlider">
+      <button class="loc-arrow" id="locPrev" type="button" aria-label="لوکیشن قبلی">‹</button>
+      <div class="loc-track-wrap">
+        <div class="loc-track" id="locTrack"></div>
+      </div>
+      <button class="loc-arrow" id="locNext" type="button" aria-label="لوکیشن بعدی">›</button>
+    </div>
   </div>
   <!-- Plan dropdown -->
   <div class="plan-picker" id="planPicker">
@@ -257,31 +312,6 @@
       </span>
     </button>
     <ul class="plan-list" id="planList" role="listbox"></ul>
-  </div>
-  <!-- Rules / important notice -->
-  <div class="rules-box">
-    <div class="rules-collapsible" id="rulesCollapsible">
-      <p class="rules-title"><span class="warn-icon">⚠️</span> قبل از انتخاب پلن، این توضیحات را کامل بخوانید</p>
-      <h3>💳 تعرفه</h3>
-      <ul class="rules-list">
-        <li>هر گیگابایت: ۱۵٬۰۰۰ تومان</li>
-        <li>هر روز: ۲٬۰۰۰ تومان</li>
-      </ul>
-      <h3>⚡ ضریب مصرف اشتراک‌ها</h3>
-      <ul class="rules-list">
-        <li>🚇 تونل (×۱) — هر ۱ گیگ = ۱ گیگ از سهمیه</li>
-        <li>📍 مستقیم (×۰.۱۵) — هر ۱ گیگ مصرف = ۱۵۴ مگابایت از سهمیه</li>
-      </ul>
-      <p class="rules-note">💡 ضریب کوچک‌تر یعنی هر گیگ مصرف، کمتر از سهمیه‌تون کم می‌شود.</p>
-      <div class="rules-divider"></div>
-      <div class="unlimited-block">
-        <h3>👥 بدون محدودیت کاربر و دستگاه!</h3>
-        <p class="rules-note">🎉 هیچ محدودیت تعداد کاربر ندارید — همزمان با هر تعداد نفر و روی هر تعداد دستگاه (موبایل، لپ‌تاپ، تبلت و ...) استفاده کنید!</p>
-      </div>
-      <div class="rules-warn-final">
-        ⚠️ توجه: این قوانین بخشی از توافق خرید شماست. لطفاً پیش از انتخاب پلن، تمام موارد بالا را با دقت مطالعه کنید. عدم آگاهی از این موارد، مسئولیتی متوجه فروشنده نمی‌کند.
-      </div>
-    </div>
   </div>
   <div class="selected-summary" id="selectedSummary"></div>
   <!-- Add-ons: extra volume / extra days (volume-control style steppers) -->
@@ -365,64 +395,98 @@
       </div>
     </div>
   </div>
-  <!-- Apps + video guide -->
+  <!-- Apps + video guide (collapsible) -->
   <div class="guide-section">
-    <p class="guide-title">📲 اپلیکیشن‌های مورد نیاز</p>
-    <p class="guide-sub">اول نوع دستگاهتون رو انتخاب کنید تا لینک دانلود مناسب همون دستگاه رو ببینید:</p>
-    <div class="device-tabs" id="deviceTabs">
-      <button type="button" class="device-tab-btn" data-device="android">
-        <span class="device-tab-icon">🤖</span>
-        اندروید
-      </button>
-      <button type="button" class="device-tab-btn" data-device="ios">
-        <span class="device-tab-icon">🍏</span>
-        آیفون
-      </button>
-      <button type="button" class="device-tab-btn" data-device="windows">
-        <span class="device-tab-icon">🖥️</span>
-        ویندوز
-      </button>
-    </div>
-    <div class="device-panel" id="devicePanelAndroid">
-      <div class="guide-grid">
-        <a class="guide-link" id="appV2boxAndroid" href="#" target="_blank" rel="noopener">
-          <span class="guide-link-icon">🤖</span>
-          v2Box
-          <span class="guide-link-sub">Android</span>
-        </a>
-        <a class="guide-link" id="appV2raytunAndroid" href="#" target="_blank" rel="noopener">
-          <span class="guide-link-icon">🤖</span>
-          v2rayTun
-          <span class="guide-link-sub">Android</span>
-        </a>
+    <button class="guide-trigger" id="guideTrigger" type="button" aria-haspopup="true" aria-expanded="false">
+      <span class="guide-trigger-left">📲 اپلیکیشن‌های مورد نیاز</span>
+      <span class="chevron" id="guideChevron">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </button>
+    <div class="guide-body" id="guideBody">
+      <p class="guide-sub">اول نوع دستگاهتون رو انتخاب کنید تا لینک دانلود مناسب همون دستگاه رو ببینید:</p>
+      <div class="device-tabs" id="deviceTabs">
+        <button type="button" class="device-tab-btn" data-device="android">
+          <span class="device-tab-icon">🤖</span>
+          اندروید
+        </button>
+        <button type="button" class="device-tab-btn" data-device="ios">
+          <span class="device-tab-icon">🍏</span>
+          آیفون
+        </button>
+        <button type="button" class="device-tab-btn" data-device="windows">
+          <span class="device-tab-icon">🖥️</span>
+          ویندوز
+        </button>
       </div>
-    </div>
-    <div class="device-panel" id="devicePanelIos">
-      <div class="guide-grid">
-        <a class="guide-link" id="appV2boxIos" href="#" target="_blank" rel="noopener">
-          <span class="guide-link-icon">🍏</span>
-          v2Box
-          <span class="guide-link-sub">iOS</span>
-        </a>
+      <div class="device-panel" id="devicePanelAndroid">
+        <div class="guide-grid">
+          <a class="guide-link" id="appV2boxAndroid" href="#" target="_blank" rel="noopener">
+            <span class="guide-link-icon">🤖</span>
+            v2Box
+            <span class="guide-link-sub">Android</span>
+          </a>
+          <a class="guide-link" id="appV2raytunAndroid" href="#" target="_blank" rel="noopener">
+            <span class="guide-link-icon">🤖</span>
+            v2rayTun
+            <span class="guide-link-sub">Android</span>
+          </a>
+        </div>
       </div>
-    </div>
-    <div class="device-panel" id="devicePanelWindows">
-      <div class="guide-grid">
-        <a class="guide-link" id="appHappWindows" href="#" target="_blank" rel="noopener">
-          <span class="guide-link-icon">🖥️</span>
-          Happ
-          <span class="guide-link-sub">Windows</span>
-        </a>
+      <div class="device-panel" id="devicePanelIos">
+        <div class="guide-grid">
+          <a class="guide-link" id="appV2boxIos" href="#" target="_blank" rel="noopener">
+            <span class="guide-link-icon">🍏</span>
+            v2Box
+            <span class="guide-link-sub">iOS</span>
+          </a>
+        </div>
       </div>
-    </div>
-    <div class="guide-divider"></div>
-    <p class="guide-title">🎬 راهنمای ویدیویی افزودن کانفیگ</p>
-    <p class="guide-sub">مراحل افزودن کانفیگ خریداری‌شده به اپلیکیشن رو در این ویدیوها ببینید:</p>
-    <div class="crypto-soon">
-      <span class="big-icon">🎬</span>
-      راهنمای ویدیویی افزودن کانفیگ به‌زودی اضافه می‌شود.
+      <div class="device-panel" id="devicePanelWindows">
+        <div class="guide-grid">
+          <a class="guide-link" id="appHappWindows" href="#" target="_blank" rel="noopener">
+            <span class="guide-link-icon">🖥️</span>
+            Happ
+            <span class="guide-link-sub">Windows</span>
+          </a>
+        </div>
+      </div>
+      <div class="guide-divider"></div>
+      <p class="guide-title">🎬 راهنمای ویدیویی افزودن کانفیگ</p>
+      <p class="guide-sub">مراحل افزودن کانفیگ خریداری‌شده به اپلیکیشن رو در این ویدیوها ببینید:</p>
+      <div class="crypto-soon">
+        <span class="big-icon">🎬</span>
+        راهنمای ویدیویی افزودن کانفیگ به‌زودی اضافه می‌شود.
+      </div>
     </div>
   </div>
+  <!-- Rules / important notice — moved to the end of the page, after the
+       required-apps section, styled with the mini app's default colors. -->
+  <div class="rules-box">
+    <div class="rules-collapsible" id="rulesCollapsible">
+      <p class="rules-title"><span class="warn-icon">⚠️</span> قبل از انتخاب پلن، این توضیحات را کامل بخوانید</p>
+      <h3>💳 تعرفه</h3>
+      <ul class="rules-list">
+        <li>هر گیگابایت: ۱۵٬۰۰۰ تومان</li>
+        <li>هر روز: ۲٬۰۰۰ تومان</li>
+      </ul>
+      <h3>⚡ ضریب مصرف اشتراک‌ها</h3>
+      <ul class="rules-list">
+        <li>🚇 تونل (×۱) — هر ۱ گیگ = ۱ گیگ از سهمیه</li>
+        <li>📍 مستقیم (×۰.۱۵) — هر ۱ گیگ مصرف = ۱۵۴ مگابایت از سهمیه</li>
+      </ul>
+      <p class="rules-note">💡 ضریب کوچک‌تر یعنی هر گیگ مصرف، کمتر از سهمیه‌تون کم می‌شود.</p>
+      <div class="rules-divider"></div>
+      <div class="unlimited-block">
+        <h3>👥 بدون محدودیت کاربر و دستگاه!</h3>
+        <p class="rules-note">🎉 هیچ محدودیت تعداد کاربر ندارید — همزمان با هر تعداد نفر و روی هر تعداد دستگاه (موبایل، لپ‌تاپ، تبلت و ...) استفاده کنید!</p>
+      </div>
+      <div class="rules-warn-final">
+        ⚠️ توجه: این قوانین بخشی از توافق خرید شماست. لطفاً پیش از انتخاب پلن، تمام موارد بالا را با دقت مطالعه کنید. عدم آگاهی از این موارد، مسئولیتی متوجه فروشنده نمی‌کند.
+      </div>
+    </div>
+  </div>
+  <p class="footer-note">MBS Online — نسخه 2.0</p>
 </div>
 <script>
   const tg = window.Telegram?.WebApp;
@@ -449,6 +513,43 @@
     userIdText.textContent = '—';
     userIdText.title = 'برای دیدن شناسه، این صفحه را از داخل اپ تلگرام باز کنید.';
   }
+  /* ---------- Top-left profile menu ---------- */
+  const profileBtn = document.getElementById('profileBtn');
+  const profileMenu = document.getElementById('profileMenu');
+  let profileOpen = false;
+  function toggleProfileMenu(forceOpen) {
+    profileOpen = typeof forceOpen === 'boolean' ? forceOpen : !profileOpen;
+    profileMenu.classList.toggle('open', profileOpen);
+    profileBtn.setAttribute('aria-expanded', String(profileOpen));
+  }
+  profileBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleProfileMenu(); });
+  function showComingSoon(label) {
+    const msg = `${label} به‌زودی فعال می‌شود 🙏`;
+    tg?.showAlert ? tg.showAlert(msg) : alert(msg);
+  }
+  document.getElementById('menuWallet').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('کیف پول من'); });
+  document.getElementById('menuMySubs').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('اشتراک‌های من'); });
+  document.getElementById('menuCollab').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('همکاری با MBS'); });
+  // Invite link: a real feature (not "coming soon") — builds a referral
+  // deep-link carrying this user's Telegram id as the /start payload, and
+  // opens Telegram's native share sheet (or copies it, as a fallback).
+  const BOT_USERNAME = 'mbsvpn_bot';
+  document.getElementById('menuInvite').addEventListener('click', () => {
+    toggleProfileMenu(false);
+    if (!user?.id) { showComingSoon('لینک دعوت'); return; }
+    const inviteLink = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
+    const shareText = 'با این لینک به MBS Online بپیوند 🚀';
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(shareText)}`);
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(inviteLink).then(() => {
+        tg?.showAlert ? tg.showAlert('لینک دعوت کپی شد ✅') : alert('لینک دعوت کپی شد ✅');
+      });
+    } else {
+      tg?.showAlert ? tg.showAlert(inviteLink) : alert(inviteLink);
+    }
+  });
+
   /* ---------- App download / video guide links ---------- */
   const APP_LINKS = {
     v2boxIos: 'https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690',
@@ -460,6 +561,18 @@
   document.getElementById('appV2boxAndroid').href = APP_LINKS.v2boxAndroid;
   document.getElementById('appV2raytunAndroid').href = APP_LINKS.v2raytunAndroid;
   document.getElementById('appHappWindows').href = APP_LINKS.happWindows;
+
+  /* ---------- Required-apps section: collapsible, like the plan picker ---------- */
+  const guideTrigger = document.getElementById('guideTrigger');
+  const guideBody = document.getElementById('guideBody');
+  let guideOpen = false;
+  function toggleGuide(forceOpen) {
+    guideOpen = typeof forceOpen === 'boolean' ? forceOpen : !guideOpen;
+    guideBody.classList.toggle('open', guideOpen);
+    guideTrigger.classList.toggle('open', guideOpen);
+    guideTrigger.setAttribute('aria-expanded', String(guideOpen));
+  }
+  guideTrigger.addEventListener('click', () => toggleGuide());
 
   /* ---------- Device-type tabs (Android / iPhone / Windows) ---------- */
   const deviceTabs = document.getElementById('deviceTabs');
@@ -551,28 +664,17 @@
     { name: 'هند',       flag: '🇮🇳' },
     { name: 'برزیل',     flag: '🇧🇷' }
   ];
-  const locTrigger = document.getElementById('locTrigger');
-  const locList = document.getElementById('locList');
-  const locFlagsPreview = document.getElementById('locFlagsPreview');
-  let locOpen = false;
-  locFlagsPreview.textContent = locations.map(l => l.flag).join(' ');
-  function renderLocList() {
-    locList.innerHTML = '';
-    locations.forEach((loc) => {
-      const li = document.createElement('li');
-      li.className = 'loc-item';
-      li.innerHTML = `<span class="flag">${loc.flag}</span><span>${loc.name}</span>`;
-      locList.appendChild(li);
-    });
-  }
-  renderLocList();
-  function toggleLocList(forceOpen) {
-    locOpen = typeof forceOpen === 'boolean' ? forceOpen : !locOpen;
-    locList.classList.toggle('open', locOpen);
-    locTrigger.classList.toggle('open', locOpen);
-    locTrigger.setAttribute('aria-expanded', String(locOpen));
-  }
-  locTrigger.addEventListener('click', (e) => { e.stopPropagation(); toggleLocList(); });
+  const locTrack = document.getElementById('locTrack');
+  const locPrevBtn = document.getElementById('locPrev');
+  const locNextBtn = document.getElementById('locNext');
+  locations.forEach((loc) => {
+    const chip = document.createElement('div');
+    chip.className = 'loc-chip';
+    chip.innerHTML = `<span class="flag">${loc.flag}</span><span class="name">${loc.name}</span>`;
+    locTrack.appendChild(chip);
+  });
+  locPrevBtn.addEventListener('click', () => locTrack.scrollBy({ left: -140, behavior: 'smooth' }));
+  locNextBtn.addEventListener('click', () => locTrack.scrollBy({ left: 140, behavior: 'smooth' }));
   /* ---------- Plans ---------- */
   const plans = [
     { id: 'trial',    label: 'پلن تستی - 1 گیگ 2 روزه - ۵۰٬۰۰۰ تومان',      icon: '➕', price: 50000,  cls: 'trial' },
@@ -707,7 +809,7 @@
   triggerEl.addEventListener('click', (e) => { e.stopPropagation(); togglePlanList(); });
   document.addEventListener('click', (e) => {
     if (planOpen && !e.target.closest('.plan-picker')) togglePlanList(false);
-    if (locOpen && !e.target.closest('.loc-picker')) toggleLocList(false);
+    if (profileOpen && !e.target.closest('.top-bar')) toggleProfileMenu(false);
   });
   /* ---------- Payment ---------- */
   const payMethodCardBtn = document.getElementById('payMethodCardBtn');

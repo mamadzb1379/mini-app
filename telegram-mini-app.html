@@ -301,6 +301,58 @@
   .wallet-custom-input::-webkit-outer-spin-button,
   .wallet-custom-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .wallet-custom-input[type="number"]{ -moz-appearance:textfield; }
+  /* "اشتراک‌های من" — purchase-history modal (bottom sheet) */
+  .subs-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:80;
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  .subs-overlay.open{display:flex;}
+  .subs-modal{
+    width:100%; max-width:480px; max-height:82vh; background:var(--card);
+    border-radius:22px 22px 0 0; padding:16px; display:flex; flex-direction:column;
+    box-shadow:0 -8px 30px rgba(0,0,0,.25); animation:subs-slide-up .22s ease-out;
+  }
+  @keyframes subs-slide-up{ from{transform:translateY(24px); opacity:.4;} to{transform:translateY(0); opacity:1;} }
+  .subs-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex:none;}
+  .subs-modal-title{font-weight:900; font-size:16px; margin:0;}
+  .subs-close-btn{
+    width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--bg);
+    color:var(--text); font-size:14px; font-family:inherit; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .subs-modal-body{overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding-bottom:6px;}
+  .subs-loading, .subs-empty{text-align:center; font-size:13px; color:var(--hint); line-height:1.9; padding:26px 10px;}
+  .subs-empty b{display:block; font-size:30px; margin-bottom:8px;}
+  .subs-card{
+    background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:14px 14px 14px 18px;
+    position:relative; overflow:hidden;
+  }
+  .subs-card::before{
+    content:''; position:absolute; inset-inline-start:0; top:0; bottom:0; width:5px; background:var(--accent);
+  }
+  .subs-card-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .subs-order-badge{
+    background:var(--accent); color:var(--accent-text); font-size:11.5px; font-weight:900;
+    padding:4px 11px; border-radius:999px; white-space:nowrap;
+  }
+  .subs-date{font-size:10.5px; color:var(--hint); font-weight:700; white-space:nowrap;}
+  .subs-plan-label{font-size:14.5px; font-weight:900; margin:0 0 8px; line-height:1.6;}
+  .subs-meta{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+  .subs-meta-chip{
+    background:var(--card); border:1px solid var(--line); border-radius:10px; padding:4px 10px;
+    font-size:11px; font-weight:800; color:var(--text);
+  }
+  .subs-price-line{font-size:13px; font-weight:700; margin:0 0 10px; color:var(--hint);}
+  .subs-price-line b{font-weight:900; font-size:15.5px; color:var(--text);}
+  .subs-details-toggle{
+    width:100%; background:none; border:1px dashed var(--line); border-radius:10px; padding:9px;
+    font-family:inherit; font-size:12px; font-weight:800; color:var(--text); cursor:pointer;
+  }
+  .subs-details-box{
+    display:none; margin-top:8px; padding:11px; background:var(--card); border-radius:10px;
+    font-size:12.5px; line-height:2; white-space:pre-wrap; word-break:break-word; border:1px solid var(--line);
+  }
+  .subs-details-box.show{display:block;}
   /* Top-left profile button + dropdown menu */
   .top-bar{position:relative; height:40px; margin-bottom:8px;}
   .profile-btn{
@@ -331,7 +383,7 @@
     <button class="profile-btn" id="profileBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="پروفایل">👤</button>
     <ul class="profile-menu" id="profileMenu" role="menu">
       <li class="profile-menu-item" id="menuWallet" role="menuitem"><span class="pmi-icon">👛</span> کیف پول من</li>
-      <li class="profile-menu-item" id="menuMySubs" role="menuitem"><span class="pmi-icon">📦</span> اشتراک‌های من <span class="pmi-soon">به‌زودی</span></li>
+      <li class="profile-menu-item" id="menuMySubs" role="menuitem"><span class="pmi-icon">📦</span> اشتراک‌های من</li>
       <li class="profile-menu-item" id="menuInvite" role="menuitem"><span class="pmi-icon">🔗</span> لینک دعوت</li>
       <li class="profile-menu-item" id="menuCollab" role="menuitem"><span class="pmi-icon">🤝</span> همکاری با MBS <span class="pmi-soon">به‌زودی</span></li>
     </ul>
@@ -474,7 +526,7 @@
         <span class="device-tab-icon">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#000000" d="M16.365 1.43c0 1.14-.43 2.06-1.24 2.86-.9.9-2.06 1.42-3.06 1.34-.1-1.1.42-2.24 1.24-3 .84-.86 2.16-1.44 3.06-1.2zM20.6 17.02c-.34.79-.5 1.14-.94 1.84-.61 1-1.47 2.24-2.54 2.25-.95.01-1.2-.62-2.5-.61-1.3 0-1.58.62-2.53.6-1.07-.02-1.88-1.13-2.49-2.13-1.71-2.78-1.89-6.05-.83-7.79.75-1.24 1.94-1.98 3.06-1.98 1.14 0 1.86.63 2.8.63.91 0 1.47-.63 2.79-.63.99 0 2.04.54 2.79 1.47-2.45 1.34-2.05 4.85.39 6.35z"/></svg>
         </span>
-        آیفون
+        iOS
       </button>
       <button type="button" class="device-tab-btn" data-device="windows">
         <span class="device-tab-icon">
@@ -595,7 +647,20 @@
     <p class="invite-count" id="inviteCount"></p>
     <button class="invite-share-btn" id="inviteShareBtn" type="button">🔗 اشتراک‌گذاری لینک دعوت من</button>
   </div>
-  <p class="footer-note">MBS Online — نسخه 2.0</p>
+  <p class="footer-note">MBS Online — نسخه 2.1</p>
+</div>
+<!-- "اشتراک‌های من" — purchase-history modal (hidden until opened from the
+     profile menu or the bot's "📦 اشتراک‌های من" button) -->
+<div class="subs-overlay" id="subsOverlay">
+  <div class="subs-modal">
+    <div class="subs-modal-header">
+      <p class="subs-modal-title">📦 اشتراک‌های من</p>
+      <button class="subs-close-btn" id="subsCloseBtn" type="button" aria-label="بستن">✕</button>
+    </div>
+    <div class="subs-modal-body" id="subsModalBody">
+      <p class="subs-loading">در حال دریافت اطلاعات…</p>
+    </div>
+  </div>
 </div>
 <script>
   const tg = window.Telegram?.WebApp;
@@ -640,7 +705,7 @@
     toggleProfileMenu(false);
     document.getElementById('walletBox')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
-  document.getElementById('menuMySubs').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('اشتراک‌های من'); });
+  document.getElementById('menuMySubs').addEventListener('click', () => { toggleProfileMenu(false); openSubsModal(); });
   document.getElementById('menuCollab').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('همکاری با MBS'); });
   // Invite link: a real feature (not "coming soon") — builds a referral
   // deep-link carrying this user's Telegram id as the /start payload, and
@@ -663,6 +728,106 @@
   }
   document.getElementById('menuInvite').addEventListener('click', () => { toggleProfileMenu(false); openInviteShare(); });
   document.getElementById('inviteShareBtn').addEventListener('click', () => openInviteShare());
+
+  /* ---------- "اشتراک‌های من" — purchase history modal ----------
+     Data source: doGet?action=my_purchases on the Apps Script side. A row
+     is only added there the moment the admin actually replies with the
+     buyer's config (see handleAdminReply_ / logPurchase_ in Code.gs) —
+     i.e. a "purchase" only shows up here once it's truly fulfilled, not
+     just the instant a receipt/wallet-purchase is submitted. */
+  const subsOverlay = document.getElementById('subsOverlay');
+  const subsModalBody = document.getElementById('subsModalBody');
+  const subsCloseBtn = document.getElementById('subsCloseBtn');
+  let subsLoaded = false;
+
+  const PURCHASE_ORDINALS = ['اول', 'دوم', 'سوم', 'چهارم', 'پنجم', 'ششم', 'هفتم', 'هشتم', 'نهم', 'دهم'];
+  function purchaseOrderLabel(n) {
+    const idx = Number(n) || 0;
+    if (idx >= 1 && idx <= PURCHASE_ORDINALS.length) return `خرید ${PURCHASE_ORDINALS[idx - 1]}`;
+    return `خرید شماره ${idx.toLocaleString('fa-IR')}`;
+  }
+  function escapeHtml_(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+  function openSubsModal() {
+    subsOverlay.classList.add('open');
+    tg?.HapticFeedback?.impactOccurred('light');
+    if (!subsLoaded) fetchMyPurchases();
+  }
+  function closeSubsModal() {
+    subsOverlay.classList.remove('open');
+  }
+  subsCloseBtn.addEventListener('click', closeSubsModal);
+  subsOverlay.addEventListener('click', (e) => { if (e.target === subsOverlay) closeSubsModal(); });
+
+  function renderPurchases(purchases) {
+    if (!purchases || !purchases.length) {
+      subsModalBody.innerHTML =
+        '<div class="subs-empty"><b>🛍️</b>هنوز هیچ خریدی ثبت نشده.<br>وقتی اولین پلن‌تون فعال بشه، همین‌جا می‌بینیدش!</div>';
+      return;
+    }
+    subsModalBody.innerHTML = purchases.map((p) => {
+      const metaChips = [];
+      if (Number(p.extraVolumeGB) > 0) metaChips.push(`+${Number(p.extraVolumeGB).toLocaleString('fa-IR')} گیگ`);
+      if (Number(p.extraDays) > 0) metaChips.push(`+${Number(p.extraDays).toLocaleString('fa-IR')} روز`);
+      const metaHtml = metaChips.length
+        ? `<div class="subs-meta">${metaChips.map((m) => `<span class="subs-meta-chip">${m}</span>`).join('')}</div>`
+        : '';
+      const detailsId = `subsDetails_${p.orderIndex}_${(p.invoiceNumber || Math.random().toString(36).slice(2)).toString().replace(/[^a-zA-Z0-9]/g, '')}`;
+      const configHtml = p.configText
+        ? `<button class="subs-details-toggle" type="button" data-target="${detailsId}">📄 مشاهده جزئیات / کانفیگ</button>
+           <div class="subs-details-box" id="${detailsId}">${escapeHtml_(p.configText)}</div>`
+        : '';
+      return `
+        <div class="subs-card">
+          <div class="subs-card-top">
+            <span class="subs-order-badge">${purchaseOrderLabel(p.orderIndex)}</span>
+            <span class="subs-date">${escapeHtml_(p.timestamp)}</span>
+          </div>
+          <p class="subs-plan-label">${escapeHtml_(p.planLabel || 'پلن')}</p>
+          ${metaHtml}
+          <p class="subs-price-line">مبلغ پرداختی: <b>${Number(p.price || 0).toLocaleString('fa-IR')}</b> تومان</p>
+          ${configHtml}
+        </div>`;
+    }).join('');
+
+    subsModalBody.querySelectorAll('.subs-details-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.getElementById(btn.dataset.target)?.classList.toggle('show');
+      });
+    });
+  }
+
+  function fetchMyPurchases() {
+    subsModalBody.innerHTML = '<p class="subs-loading">در حال دریافت اطلاعات…</p>';
+    if (!user?.id || !initData) {
+      subsModalBody.innerHTML = '<p class="subs-empty">برای دیدن اشتراک‌ها، این صفحه رو از داخل تلگرام باز کنید.</p>';
+      return;
+    }
+    fetch(`${VISIT_LOG_URL}?action=my_purchases&initData=${encodeURIComponent(initData)}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res || !res.ok) {
+          subsModalBody.innerHTML = '<p class="subs-empty">در حال حاضر امکان نمایش اشتراک‌ها نیست.</p>';
+          return;
+        }
+        subsLoaded = true;
+        renderPurchases(res.purchases || []);
+      })
+      .catch(() => {
+        subsModalBody.innerHTML = '<p class="subs-empty">در حال حاضر امکان نمایش اشتراک‌ها نیست.</p>';
+      });
+  }
+  // The bot's "📦 اشتراک‌های من" button opens this same mini app with
+  // ?view=subs appended to the URL — auto-open the modal in that case.
+  try {
+    const launchParams = new URLSearchParams(window.location.search);
+    if (launchParams.get('view') === 'subs') {
+      setTimeout(() => openSubsModal(), 300);
+    }
+  } catch (err) { /* URLSearchParams unsupported — ignore, non-critical */ }
 
   /* ---------- App download / video guide links ---------- */
   const APP_LINKS = {

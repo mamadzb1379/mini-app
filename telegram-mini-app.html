@@ -354,6 +354,37 @@
     font-size:12.5px; line-height:2; white-space:pre-wrap; word-break:break-word; border:1px solid var(--line);
   }
   .subs-details-box.show{display:block;}
+  /* Tabs inside the "اشتراک‌های من" modal: plan purchases vs wallet
+     transactions (top-ups + wallet-paid purchases) — both now live in
+     the same modal so everything the user did is in one place. */
+  .subs-tabs{display:flex; gap:8px; margin-bottom:14px; flex:none;}
+  .subs-tab-btn{
+    flex:1; padding:9px 8px; border-radius:12px; border:1px solid var(--line); background:var(--bg);
+    color:var(--text); font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer;
+  }
+  .subs-tab-btn.active{background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
+  /* Wallet transaction card — same visual language as .subs-card but with
+     its own accent color per type (credit=green-ish accent, debit=uses
+     the normal brand accent) so credits/debits are told apart at a glance. */
+  .wtx-card{
+    background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:14px 14px 14px 18px;
+    position:relative; overflow:hidden;
+  }
+  .wtx-card::before{
+    content:''; position:absolute; inset-inline-start:0; top:0; bottom:0; width:5px; background:var(--accent);
+  }
+  .wtx-card.credit::before{background:#3a8f4f;}
+  .wtx-card-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;}
+  .wtx-type-badge{
+    font-size:11.5px; font-weight:900; padding:4px 11px; border-radius:999px; white-space:nowrap;
+    background:var(--accent); color:var(--accent-text);
+  }
+  .wtx-card.credit .wtx-type-badge{background:#3a8f4f; color:#fff;}
+  .wtx-date{font-size:10.5px; color:var(--hint); font-weight:700; white-space:nowrap;}
+  .wtx-amount{font-size:16.5px; font-weight:900; margin:0 0 6px;}
+  .wtx-amount.credit{color:#276b38;}
+  .wtx-note{font-size:12.5px; color:var(--hint); line-height:1.8; margin:0;}
+  .wtx-invoice{font-size:10.5px; color:var(--hint); font-weight:700; margin-top:6px;}
   /* Top-left profile button + dropdown menu */
   .top-bar{position:relative; height:40px; margin-bottom:8px;}
   .profile-btn{
@@ -703,6 +734,10 @@
       <p class="subs-modal-title">📦 اشتراک‌های من</p>
       <button class="subs-close-btn" id="subsCloseBtn" type="button" aria-label="بستن">✕</button>
     </div>
+    <div class="subs-tabs" id="subsTabs">
+      <button type="button" class="subs-tab-btn active" id="subsTabPurchasesBtn">🛒 خرید پلن‌ها</button>
+      <button type="button" class="subs-tab-btn" id="subsTabWalletBtn">👛 تراکنش‌های کیف پول</button>
+    </div>
     <div class="subs-modal-body" id="subsModalBody">
       <p class="subs-loading">در حال دریافت اطلاعات…</p>
     </div>
@@ -807,7 +842,11 @@
   const subsOverlay = document.getElementById('subsOverlay');
   const subsModalBody = document.getElementById('subsModalBody');
   const subsCloseBtn = document.getElementById('subsCloseBtn');
-  let subsLoaded = false;
+  const subsTabPurchasesBtn = document.getElementById('subsTabPurchasesBtn');
+  const subsTabWalletBtn = document.getElementById('subsTabWalletBtn');
+  let subsPurchasesLoaded = false;
+  let subsWalletLoaded = false;
+  let subsActiveTab = 'purchases'; // 'purchases' | 'wallet'
 
   const PURCHASE_ORDINALS = ['اول', 'دوم', 'سوم', 'چهارم', 'پنجم', 'ششم', 'هفتم', 'هشتم', 'نهم', 'دهم'];
   function purchaseOrderLabel(n) {
@@ -823,13 +862,31 @@
   function openSubsModal() {
     subsOverlay.classList.add('open');
     tg?.HapticFeedback?.impactOccurred('light');
-    if (!subsLoaded) fetchMyPurchases();
+    if (subsActiveTab === 'purchases' && !subsPurchasesLoaded) fetchMyPurchases();
+    if (subsActiveTab === 'wallet' && !subsWalletLoaded) fetchMyWalletHistory();
   }
   function closeSubsModal() {
     subsOverlay.classList.remove('open');
   }
   subsCloseBtn.addEventListener('click', closeSubsModal);
   subsOverlay.addEventListener('click', (e) => { if (e.target === subsOverlay) closeSubsModal(); });
+
+  function setSubsTab(tab) {
+    subsActiveTab = tab;
+    subsTabPurchasesBtn.classList.toggle('active', tab === 'purchases');
+    subsTabWalletBtn.classList.toggle('active', tab === 'wallet');
+    tg?.HapticFeedback?.selectionChanged();
+    if (tab === 'purchases') {
+      subsPurchasesLoaded ? renderPurchases(lastPurchasesData) : fetchMyPurchases();
+    } else {
+      subsWalletLoaded ? renderWalletHistory(lastWalletHistoryData) : fetchMyWalletHistory();
+    }
+  }
+  subsTabPurchasesBtn.addEventListener('click', () => setSubsTab('purchases'));
+  subsTabWalletBtn.addEventListener('click', () => setSubsTab('wallet'));
+
+  let lastPurchasesData = [];
+  let lastWalletHistoryData = [];
 
   function renderPurchases(purchases) {
     if (!purchases || !purchases.length) {
@@ -846,8 +903,11 @@
         : '';
       const detailsId = `subsDetails_${p.orderIndex}_${(p.invoiceNumber || Math.random().toString(36).slice(2)).toString().replace(/[^a-zA-Z0-9]/g, '')}`;
       const configHtml = p.configText
-        ? `<button class="subs-details-toggle" type="button" data-target="${detailsId}">📄 مشاهده جزئیات / کانفیگ</button>
+        ? `<button class="subs-details-toggle" type="button" data-target="${detailsId}">🔗 مشاهده لینک / کانفیگ خرید</button>
            <div class="subs-details-box" id="${detailsId}">${escapeHtml_(p.configText)}</div>`
+        : '';
+      const invoiceHtml = p.invoiceNumber
+        ? `<p class="wtx-invoice">شماره فاکتور: ${escapeHtml_(p.invoiceNumber)}</p>`
         : '';
       return `
         <div class="subs-card">
@@ -859,6 +919,7 @@
           ${metaHtml}
           <p class="subs-price-line">مبلغ پرداختی: <b>${Number(p.price || 0).toLocaleString('fa-IR')}</b> تومان</p>
           ${configHtml}
+          ${invoiceHtml}
         </div>`;
     }).join('');
 
@@ -882,11 +943,73 @@
           subsModalBody.innerHTML = '<p class="subs-empty">در حال حاضر امکان نمایش اشتراک‌ها نیست.</p>';
           return;
         }
-        subsLoaded = true;
-        renderPurchases(res.purchases || []);
+        subsPurchasesLoaded = true;
+        lastPurchasesData = res.purchases || [];
+        renderPurchases(lastPurchasesData);
       })
       .catch(() => {
         subsModalBody.innerHTML = '<p class="subs-empty">در حال حاضر امکان نمایش اشتراک‌ها نیست.</p>';
+      });
+  }
+
+  /* ---------- "کیف پول من" tab — wallet transaction history ----------
+     Data source: doGet?action=my_wallet_history (see getMyWalletHistory_ /
+     handleMyWalletHistoryQuery_ in Code.gs). Shows every top-up credited
+     by the admin AND every purchase paid directly from the wallet — the
+     same Wallet Ledger sheet mutateWallet_ writes to, with the admin-only
+     adminId column stripped out before it ever reaches the client. */
+  const WTX_TYPE_LABELS = { topup: '💰 شارژ کیف پول', purchase: '🛒 خرید با کیف پول' };
+  function renderWalletHistory(history) {
+    if (!history || !history.length) {
+      subsModalBody.innerHTML =
+        '<div class="subs-empty"><b>👛</b>هنوز هیچ تراکنش کیف پولی ثبت نشده.<br>بعد از اولین شارژ یا خرید با کیف پول، همین‌جا می‌بینیدش!</div>';
+      return;
+    }
+    // Oldest-first from the backend — show newest-first here since that's
+    // more useful for a transaction history list.
+    const rows = history.slice().reverse();
+    subsModalBody.innerHTML = rows.map((tx) => {
+      const isCredit = tx.type === 'topup';
+      const sign = isCredit ? '+' : '−';
+      const typeLabel = WTX_TYPE_LABELS[tx.type] || tx.type;
+      const invoiceHtml = tx.invoiceNumber
+        ? `<p class="wtx-invoice">شماره پیگیری: ${escapeHtml_(tx.invoiceNumber)}</p>`
+        : '';
+      const noteHtml = tx.note
+        ? `<p class="wtx-note">${escapeHtml_(tx.note)}</p>`
+        : '';
+      return `
+        <div class="wtx-card ${isCredit ? 'credit' : ''}">
+          <div class="wtx-card-top">
+            <span class="wtx-type-badge">${typeLabel}</span>
+            <span class="wtx-date">${escapeHtml_(tx.timestamp)}</span>
+          </div>
+          <p class="wtx-amount ${isCredit ? 'credit' : ''}">${sign} ${Number(Math.abs(tx.amount) || 0).toLocaleString('fa-IR')} تومان</p>
+          ${noteHtml}
+          ${invoiceHtml}
+        </div>`;
+    }).join('');
+  }
+
+  function fetchMyWalletHistory() {
+    subsModalBody.innerHTML = '<p class="subs-loading">در حال دریافت اطلاعات…</p>';
+    if (!user?.id || !initData) {
+      subsModalBody.innerHTML = '<p class="subs-empty">برای دیدن تراکنش‌ها، این صفحه رو از داخل تلگرام باز کنید.</p>';
+      return;
+    }
+    fetch(`${VISIT_LOG_URL}?action=my_wallet_history&initData=${encodeURIComponent(initData)}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res || !res.ok) {
+          subsModalBody.innerHTML = '<p class="subs-empty">در حال حاضر امکان نمایش تراکنش‌ها نیست.</p>';
+          return;
+        }
+        subsWalletLoaded = true;
+        lastWalletHistoryData = res.history || [];
+        renderWalletHistory(lastWalletHistoryData);
+      })
+      .catch(() => {
+        subsModalBody.innerHTML = '<p class="subs-empty">در حال حاضر امکان نمایش تراکنش‌ها نیست.</p>';
       });
   }
   // The bot's "📦 اشتراک‌های من" button opens this same mini app with

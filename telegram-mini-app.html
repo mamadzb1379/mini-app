@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>MBS Online - انتخاب پلن</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -375,6 +376,50 @@
   .profile-menu-item:hover, .profile-menu-item:active{background:var(--bg);}
   .profile-menu-item .pmi-icon{font-size:16px; flex:none;}
   .profile-menu-item .pmi-soon{margin-inline-start:auto; font-size:10px; font-weight:900; color:var(--hint);}
+  /* "تور آشنایی" — story-like onboarding shown once to first-time users.
+     Full-screen, dark backdrop, one slide visible at a time with a
+     progress bar (Instagram/Snapchat-story style) and left/right tap
+     zones to move between slides. */
+  .onboarding-overlay{
+    position:fixed; inset:0; background:#000; z-index:100;
+    display:none; align-items:center; justify-content:center;
+  }
+  .onboarding-overlay.open{display:flex;}
+  .onboarding-card{
+    position:relative; width:100%; max-width:480px; height:100%; max-height:820px;
+    display:flex; flex-direction:column; overflow:hidden;
+    background:linear-gradient(160deg, var(--bg) 0%, var(--plan-bg-special) 100%);
+  }
+  .onboarding-progress{display:flex; gap:5px; padding:14px 14px 0; flex:none; direction:ltr;}
+  .onboarding-progress-seg{flex:1; height:3.5px; border-radius:3px; background:rgba(0,0,0,.18); overflow:hidden;}
+  .onboarding-progress-seg-fill{height:100%; width:0%; background:#000; border-radius:3px; transition:width .25s ease;}
+  .onboarding-progress-seg.done .onboarding-progress-seg-fill{width:100%;}
+  .onboarding-skip{
+    position:absolute; top:14px; left:14px; z-index:5;
+    background:rgba(255,255,255,.55); border:none; border-radius:999px;
+    padding:6px 14px; font-family:inherit; font-size:12px; font-weight:800; color:var(--text); cursor:pointer;
+  }
+  .onboarding-body{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:36px 30px; position:relative;
+  }
+  .onboarding-icon{font-size:66px; line-height:1; margin-bottom:22px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.15));}
+  .onboarding-title{font-size:21px; font-weight:900; margin:0 0 12px; line-height:1.5;}
+  .onboarding-desc{font-size:14.5px; color:var(--hint); line-height:2; margin:0; max-width:340px;}
+  .onboarding-taparea{position:absolute; inset:0; display:flex; z-index:1;}
+  .onboarding-taparea span{flex:1;}
+  .onboarding-footer{flex:none; padding:0 20px 26px; display:flex; flex-direction:column; gap:10px;}
+  .onboarding-dots-hint{text-align:center; font-size:11.5px; color:var(--hint); font-weight:700;}
+  .onboarding-next-btn{
+    width:100%; padding:14px; border-radius:16px; border:none; background:var(--accent); color:var(--accent-text);
+    font-family:inherit; font-size:15px; font-weight:900; cursor:pointer; position:relative; z-index:2;
+  }
+  .onboarding-next-btn:active{filter:brightness(.95);}
+  /* Confetti canvas — sits above everything, ignores pointer events so it
+     never blocks taps on the UI underneath it while it's animating. */
+  #confettiCanvas{
+    position:fixed; inset:0; z-index:200; pointer-events:none;
+  }
 </style>
 </head>
 <body>
@@ -385,6 +430,7 @@
       <li class="profile-menu-item" id="menuWallet" role="menuitem"><span class="pmi-icon">👛</span> کیف پول من</li>
       <li class="profile-menu-item" id="menuMySubs" role="menuitem"><span class="pmi-icon">📦</span> اشتراک‌های من</li>
       <li class="profile-menu-item" id="menuInvite" role="menuitem"><span class="pmi-icon">🔗</span> لینک دعوت</li>
+      <li class="profile-menu-item" id="menuTour" role="menuitem"><span class="pmi-icon">✨</span> تور آشنایی با اپ</li>
       <li class="profile-menu-item" id="menuCollab" role="menuitem"><span class="pmi-icon">🤝</span> همکاری با MBS <span class="pmi-soon">به‌زودی</span></li>
     </ul>
   </div>
@@ -423,7 +469,7 @@
     <ul class="plan-list" id="planList" role="listbox"></ul>
   </div>
   <div class="selected-summary" id="selectedSummary"></div>
-  <!-- Add-ons: extra volume / extra days (volume-control style steppers) -->
+  <!-- Add-ons: extra volume / extra days steppers (volume-control style) -->
   <div class="addon-section" id="addonSection">
     <p class="addon-title">🛠️ ساخت پلن دلخواه</p>
     <p class="addon-subtitle">حجم و روز موردنظرتون رو انتخاب کنید تا پلن دلخواه شما ساخته بشه.</p>
@@ -662,6 +708,28 @@
     </div>
   </div>
 </div>
+<!-- "تور آشنایی" — story-like onboarding overlay, shown once to first-time
+     users (see the onboarding-* JS block near the bottom of the script). -->
+<div class="onboarding-overlay" id="onboardingOverlay">
+  <div class="onboarding-card">
+    <div class="onboarding-progress" id="onboardingProgress"></div>
+    <button class="onboarding-skip" id="onboardingSkipBtn" type="button">رد کردن ✕</button>
+    <div class="onboarding-body">
+      <div class="onboarding-taparea" id="onboardingTapArea">
+        <span id="onboardingTapPrev"></span>
+        <span id="onboardingTapNext"></span>
+      </div>
+      <div class="onboarding-icon" id="onboardingIcon">👋</div>
+      <p class="onboarding-title" id="onboardingTitle"></p>
+      <p class="onboarding-desc" id="onboardingDesc"></p>
+    </div>
+    <div class="onboarding-footer">
+      <p class="onboarding-dots-hint">با تپ روی چپ/راست صفحه، بین مراحل جابه‌جا شوید</p>
+      <button class="onboarding-next-btn" id="onboardingNextBtn" type="button">بعدی</button>
+    </div>
+  </div>
+</div>
+<canvas id="confettiCanvas"></canvas>
 <script>
   const tg = window.Telegram?.WebApp;
   if (tg) {
@@ -706,6 +774,7 @@
     document.getElementById('walletBox')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   document.getElementById('menuMySubs').addEventListener('click', () => { toggleProfileMenu(false); openSubsModal(); });
+  document.getElementById('menuTour').addEventListener('click', () => { toggleProfileMenu(false); openOnboarding(true); });
   document.getElementById('menuCollab').addEventListener('click', () => { toggleProfileMenu(false); showComingSoon('همکاری با MBS'); });
   // Invite link: a real feature (not "coming soon") — builds a referral
   // deep-link carrying this user's Telegram id as the /start payload, and
@@ -1236,6 +1305,7 @@
         walletPayStatusEl.textContent = '✅ خرید با موفقیت از کیف پول شما پرداخت شد. پشتیبانی به‌زودی کانفیگ رو براتون ارسال می‌کنه.';
         walletPayStatusEl.classList.add('show');
         walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
+        fireConfetti();
       } else if (res && res.error === 'insufficient_balance') {
         currentWalletBalance = Number(res.balance) || currentWalletBalance;
         tg?.HapticFeedback?.notificationOccurred('error');
@@ -1545,6 +1615,7 @@
       tg?.HapticFeedback?.notificationOccurred('success');
       payStatusEl.classList.add('show');
       refreshCooldownUI();
+      fireConfetti();
     } catch (err) {
       tg?.HapticFeedback?.notificationOccurred('error');
       tg?.showAlert ? tg.showAlert('ارسال رسید با خطا مواجه شد، دوباره تلاش کنید.') : alert('ارسال رسید با خطا مواجه شد، دوباره تلاش کنید.');
@@ -1552,6 +1623,138 @@
       payConfirmBtn.textContent = 'ارسال رسید پرداخت';
     }
   });
+
+  /* ---------- 🎉 Confetti — fired the moment a purchase is submitted
+     (card receipt sent) or completed (wallet purchase debited). Uses the
+     canvas-confetti library loaded in <head>. Colors match the app's own
+     brand palette so it feels native, not generic. Falls back to doing
+     nothing (silently) if the library failed to load for any reason —
+     never blocks or breaks the actual purchase flow. ---------- */
+  function fireConfetti() {
+    if (typeof confetti !== 'function') return;
+    const brandColors = ['#FFD300', '#C9622D', '#FCF4A3', '#D2B55B', '#FFFFFF'];
+    const canvasEl = document.getElementById('confettiCanvas');
+    const myConfetti = canvasEl ? confetti.create(canvasEl, { resize: true, useWorker: true }) : confetti;
+    const duration = 1600;
+    const end = Date.now() + duration;
+    (function frame() {
+      myConfetti({
+        particleCount: 4,
+        angle: 60,
+        spread: 65,
+        origin: { x: 0, y: 0.7 },
+        colors: brandColors,
+        startVelocity: 45,
+        scalar: 1.05
+      });
+      myConfetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 65,
+        origin: { x: 1, y: 0.7 },
+        colors: brandColors,
+        startVelocity: 45,
+        scalar: 1.05
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+    // One big celebratory burst from the center/top right after the two
+    // side-cannons start, for a fuller "جشن" feeling.
+    setTimeout(() => {
+      myConfetti({
+        particleCount: 90,
+        spread: 100,
+        origin: { y: 0.5 },
+        colors: brandColors,
+        startVelocity: 40,
+        scalar: 1.1
+      });
+    }, 200);
+  }
+
+  /* ---------- ✨ "تور آشنایی" — story-like onboarding ----------
+     Shown automatically once to first-time users (checked via Telegram
+     CloudStorage — persists across sessions on this Telegram account so
+     it never nags a returning user), and can be re-opened any time from
+     the profile menu ("تور آشنایی با اپ"). Navigation: tap right half of
+     the screen (or the "بعدی" button) to advance, tap left half to go
+     back, "رد کردن" to skip/close at any point. */
+  const ONBOARDING_SLIDES = [
+    { icon: '👋', title: 'به MBS Online خوش اومدی!', desc: 'تو چند مرحله کوتاه، نشونت می‌دیم چطور از اپ حداکثر استفاده رو ببری. فقط چند ثانیه طول می‌کشه 🙂' },
+    { icon: '🛒', title: 'انتخاب پلن یا ساخت پلن دلخواه', desc: 'از بین پلن‌های آماده یکی رو انتخاب کن، یا با «پلن دلخواه» خودت حجم و روز موردنظرت رو با استپر تنظیم کن.' },
+    { icon: '👛', title: 'کیف پول برای پرداخت آنی', desc: 'کیف پولت رو شارژ کن تا موقع خرید، به‌جای فرستادن رسید و صبر کردن، همون لحظه از موجودی‌ت پرداخت بشه.' },
+    { icon: '📦', title: 'اشتراک‌های من', desc: 'از منوی پروفایل بالا سمت چپ، هر وقت خواستی می‌تونی تاریخچه‌ی کامل خریدها و کانفیگ‌هات رو ببینی.' },
+    { icon: '🎁', title: 'دعوت دوستان = هدیه رایگان', desc: 'لینک دعوتت رو با دوستات به اشتراک بذار؛ به‌ازای هر ۶ دعوت موفق، یک اشتراک ۵ گیگ ۳۰ روزه رایگان می‌گیری.' },
+    { icon: '🚀', title: 'همینه! آماده‌ای شروع کنی', desc: 'اگه هر موقع خواستی دوباره این تور رو ببینی، از منوی پروفایل روی «تور آشنایی با اپ» بزن. بریم شروع کنیم!' }
+  ];
+  const ONBOARDING_SEEN_KEY = 'onboarding_seen_v1';
+  const onboardingOverlay = document.getElementById('onboardingOverlay');
+  const onboardingProgress = document.getElementById('onboardingProgress');
+  const onboardingIcon = document.getElementById('onboardingIcon');
+  const onboardingTitle = document.getElementById('onboardingTitle');
+  const onboardingDesc = document.getElementById('onboardingDesc');
+  const onboardingNextBtn = document.getElementById('onboardingNextBtn');
+  const onboardingSkipBtn = document.getElementById('onboardingSkipBtn');
+  const onboardingTapPrev = document.getElementById('onboardingTapPrev');
+  const onboardingTapNext = document.getElementById('onboardingTapNext');
+  let onboardingIndex = 0;
+
+  function renderOnboardingProgress() {
+    onboardingProgress.innerHTML = ONBOARDING_SLIDES.map((_, i) => {
+      const doneClass = i < onboardingIndex ? 'done' : '';
+      const fillWidth = i === onboardingIndex ? '100%' : (i < onboardingIndex ? '100%' : '0%');
+      return `<div class="onboarding-progress-seg ${doneClass}"><div class="onboarding-progress-seg-fill" style="width:${fillWidth}"></div></div>`;
+    }).join('');
+  }
+  function renderOnboardingSlide() {
+    const slide = ONBOARDING_SLIDES[onboardingIndex];
+    if (!slide) return;
+    onboardingIcon.textContent = slide.icon;
+    onboardingTitle.textContent = slide.title;
+    onboardingDesc.textContent = slide.desc;
+    onboardingNextBtn.textContent = onboardingIndex === ONBOARDING_SLIDES.length - 1 ? 'بزن بریم 🚀' : 'بعدی';
+    renderOnboardingProgress();
+  }
+  function goOnboardingNext() {
+    if (onboardingIndex >= ONBOARDING_SLIDES.length - 1) {
+      closeOnboarding();
+      return;
+    }
+    onboardingIndex++;
+    renderOnboardingSlide();
+    tg?.HapticFeedback?.selectionChanged();
+  }
+  function goOnboardingPrev() {
+    if (onboardingIndex <= 0) return;
+    onboardingIndex--;
+    renderOnboardingSlide();
+    tg?.HapticFeedback?.selectionChanged();
+  }
+  function openOnboarding(manualReopen) {
+    onboardingIndex = 0;
+    renderOnboardingSlide();
+    onboardingOverlay.classList.add('open');
+    if (manualReopen) tg?.HapticFeedback?.impactOccurred('light');
+  }
+  function closeOnboarding() {
+    onboardingOverlay.classList.remove('open');
+    tg?.CloudStorage?.setItem(ONBOARDING_SEEN_KEY, '1', () => {});
+  }
+  onboardingNextBtn.addEventListener('click', goOnboardingNext);
+  onboardingSkipBtn.addEventListener('click', closeOnboarding);
+  onboardingTapNext.addEventListener('click', goOnboardingNext);
+  onboardingTapPrev.addEventListener('click', goOnboardingPrev);
+
+  // Auto-show for first-time users only — checked via Telegram
+  // CloudStorage (persists per Telegram account across sessions/devices),
+  // with a short delay so it doesn't fight with the page's initial paint.
+  if (tg?.CloudStorage) {
+    tg.CloudStorage.getItem(ONBOARDING_SEEN_KEY, (err, seen) => {
+      if (!seen) {
+        setTimeout(() => openOnboarding(false), 500);
+      }
+    });
+  }
 </script>
 </body>
 </html>

@@ -365,23 +365,28 @@
   .subs-tab-btn.active{background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
   /* Wallet transaction card — same visual language as .subs-card but with
      its own accent color per type (credit=green-ish accent, debit=uses
-     the normal brand accent) so credits/debits are told apart at a glance. */
+     the normal brand accent) so credits/debits are told apart at a glance.
+     wtx-card-top uses min-width:0 + flex-shrink on the badge specifically
+     to stop the (sometimes long) Persian label from overflowing/overlapping
+     the date on narrow screens — earlier version let the badge grow past
+     the card edge and visually swallow everything below it. */
   .wtx-card{
-    background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:14px 14px 14px 18px;
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 14px 14px 18px;
     position:relative; overflow:hidden;
   }
   .wtx-card::before{
     content:''; position:absolute; inset-inline-start:0; top:0; bottom:0; width:5px; background:var(--accent);
   }
   .wtx-card.credit::before{background:#3a8f4f;}
-  .wtx-card-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;}
+  .wtx-card-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; min-width:0;}
   .wtx-type-badge{
-    font-size:11.5px; font-weight:900; padding:4px 11px; border-radius:999px; white-space:nowrap;
+    font-size:11px; font-weight:800; padding:4px 10px; border-radius:999px; white-space:nowrap;
     background:var(--accent); color:var(--accent-text);
+    flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
   }
   .wtx-card.credit .wtx-type-badge{background:#3a8f4f; color:#fff;}
-  .wtx-date{font-size:10.5px; color:var(--hint); font-weight:700; white-space:nowrap;}
-  .wtx-amount{font-size:16.5px; font-weight:900; margin:0 0 6px;}
+  .wtx-date{font-size:10.5px; color:var(--hint); font-weight:700; white-space:nowrap; flex:none;}
+  .wtx-amount{font-size:17px; font-weight:900; margin:0 0 6px; color:var(--text);}
   .wtx-amount.credit{color:#276b38;}
   .wtx-note{font-size:12.5px; color:var(--hint); line-height:1.8; margin:0;}
   .wtx-invoice{font-size:10.5px; color:var(--hint); font-weight:700; margin-top:6px;}
@@ -958,7 +963,7 @@
      by the admin AND every purchase paid directly from the wallet — the
      same Wallet Ledger sheet mutateWallet_ writes to, with the admin-only
      adminId column stripped out before it ever reaches the client. */
-  const WTX_TYPE_LABELS = { topup: '💰 شارژ کیف پول', purchase: '🛒 خرید با کیف پول' };
+  const WTX_TYPE_LABELS = { topup: '💰 شارژ', purchase: '🛒 خرید' };
   function renderWalletHistory(history) {
     if (!history || !history.length) {
       subsModalBody.innerHTML =

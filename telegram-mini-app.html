@@ -1505,7 +1505,13 @@
         currentWalletBalance = Number(res.newBalance);
         updateWalletDisplays();
         tg?.HapticFeedback?.notificationOccurred('success');
-        walletPayStatusEl.textContent = '✅ خرید با موفقیت از کیف پول شما پرداخت شد. پشتیبانی به‌زودی کانفیگ رو براتون ارسال می‌کنه.';
+        // notifyOk:false means the money was deducted and recorded, but the
+        // Telegram message to the support group failed to send — the buyer
+        // must NOT be left thinking everything's fine with no way to know
+        // fulfillment might get missed, so add an explicit follow-up note.
+        walletPayStatusEl.textContent = res.notifyOk === false
+          ? '✅ مبلغ از کیف پول شما کسر شد، ولی در اطلاع‌رسانی به پشتیبانی مشکلی پیش اومد. لطفاً با ذکر شماره فاکتور به پشتیبانی پیام بدید تا سفارشتون رو پیگیری کنن 🙏'
+          : '✅ خرید با موفقیت از کیف پول شما پرداخت شد. پشتیبانی به‌زودی کانفیگ رو براتون ارسال می‌کنه.';
         walletPayStatusEl.classList.add('show');
         walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
         fireConfetti();

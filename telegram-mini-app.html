@@ -348,12 +348,24 @@
   .subs-details-toggle{
     width:100%; background:none; border:1px dashed var(--line); border-radius:10px; padding:9px;
     font-family:inherit; font-size:12px; font-weight:800; color:var(--text); cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
   }
+  .subs-details-arrow{display:inline-block; transition:transform .18s ease; transform:rotate(180deg); font-size:11px;}
+  .subs-details-toggle.open .subs-details-arrow{transform:rotate(0deg);}
   .subs-details-box{
     display:none; margin-top:8px; padding:11px; background:var(--card); border-radius:10px;
-    font-size:12.5px; line-height:2; white-space:pre-wrap; word-break:break-word; border:1px solid var(--line);
+    font-size:12.5px; line-height:2; border:1px solid var(--line);
   }
   .subs-details-box.show{display:block;}
+  .subs-details-box-inner{white-space:pre-wrap; word-break:break-word; margin-bottom:9px;}
+  .subs-copy-btn{
+    width:100%; background:var(--accent); color:var(--accent-text); border:none; border-radius:9px;
+    padding:8px; font-family:inherit; font-size:11.5px; font-weight:800; cursor:pointer;
+  }
+  .subs-no-config{
+    font-size:11.5px; color:var(--hint); line-height:1.9; background:var(--card); border:1px dashed var(--line);
+    border-radius:10px; padding:9px 10px; margin:0;
+  }
   /* Tabs inside the "اشتراک‌های من" modal: plan purchases vs wallet
      transactions (top-ups + wallet-paid purchases) — both now live in
      the same modal so everything the user did is in one place. */
@@ -390,6 +402,18 @@
   .wtx-amount.credit{color:#276b38;}
   .wtx-note{font-size:12.5px; color:var(--hint); line-height:1.8; margin:0;}
   .wtx-invoice{font-size:10.5px; color:var(--hint); font-weight:700; margin-top:6px;}
+  /* Quick-glance summary strip at the top of the wallet-transactions tab —
+     total charged in vs. total spent, computed client-side from the same
+     rows so the user doesn't have to add every card up by hand. */
+  .wtx-summary{
+    display:flex; align-items:center; background:var(--bg); border:1px solid var(--line);
+    border-radius:16px; padding:12px 14px; margin-bottom:2px;
+  }
+  .wtx-summary-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;}
+  .wtx-summary-label{font-size:11px; font-weight:700; color:var(--hint);}
+  .wtx-summary-value{font-size:15.5px; font-weight:900; color:var(--text);}
+  .wtx-summary-value.credit{color:#276b38;}
+  .wtx-summary-divider{width:1px; align-self:stretch; background:var(--line); margin:0 4px;}
   /* Top-left profile button + dropdown menu */
   .top-bar{position:relative; height:40px; margin-bottom:8px;}
   .profile-btn{
@@ -907,10 +931,19 @@
         ? `<div class="subs-meta">${metaChips.map((m) => `<span class="subs-meta-chip">${m}</span>`).join('')}</div>`
         : '';
       const detailsId = `subsDetails_${p.orderIndex}_${(p.invoiceNumber || Math.random().toString(36).slice(2)).toString().replace(/[^a-zA-Z0-9]/g, '')}`;
+      // Always show a details section, even when there's no config text yet —
+      // an empty-looking card reads as "incomplete" to the buyer, so a purchase
+      // that's logged but has no link/config attached says so explicitly instead
+      // of just silently omitting the block.
       const configHtml = p.configText
-        ? `<button class="subs-details-toggle" type="button" data-target="${detailsId}">🔗 مشاهده لینک / کانفیگ خرید</button>
-           <div class="subs-details-box" id="${detailsId}">${escapeHtml_(p.configText)}</div>`
-        : '';
+        ? `<button class="subs-details-toggle" type="button" data-target="${detailsId}">
+             <span>🔗 مشاهده لینک / کانفیگ خرید</span><span class="subs-details-arrow">︿</span>
+           </button>
+           <div class="subs-details-box" id="${detailsId}">
+             <div class="subs-details-box-inner">${escapeHtml_(p.configText)}</div>
+             <button class="subs-copy-btn" type="button" data-copy="${detailsId}">📋 کپی کانفیگ</button>
+           </div>`
+        : `<p class="subs-no-config">⏳ لینک/کانفیگ این خرید هنوز توسط پشتیبانی ثبت نشده — اگر دریافت نکردید، به پشتیبانی پیام بدید.</p>`;
       const invoiceHtml = p.invoiceNumber
         ? `<p class="wtx-invoice">شماره فاکتور: ${escapeHtml_(p.invoiceNumber)}</p>`
         : '';
@@ -920,7 +953,7 @@
             <span class="subs-order-badge">${purchaseOrderLabel(p.orderIndex)}</span>
             <span class="subs-date">${escapeHtml_(p.timestamp)}</span>
           </div>
-          <p class="subs-plan-label">${escapeHtml_(p.planLabel || 'پلن')}</p>
+          <p class="subs-plan-label">📶 ${escapeHtml_(p.planLabel || 'پلن')}</p>
           ${metaHtml}
           <p class="subs-price-line">مبلغ پرداختی: <b>${Number(p.price || 0).toLocaleString('fa-IR')}</b> تومان</p>
           ${configHtml}
@@ -931,6 +964,27 @@
     subsModalBody.querySelectorAll('.subs-details-toggle').forEach((btn) => {
       btn.addEventListener('click', () => {
         document.getElementById(btn.dataset.target)?.classList.toggle('show');
+        btn.classList.toggle('open');
+      });
+    });
+    subsModalBody.querySelectorAll('.subs-copy-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const box = document.getElementById(btn.dataset.copy);
+        const text = box?.querySelector('.subs-details-box-inner')?.textContent || '';
+        const done = () => {
+          tg?.HapticFeedback?.notificationOccurred('success');
+          const original = btn.textContent;
+          btn.textContent = '✅ کپی شد';
+          setTimeout(() => { btn.textContent = original; }, 1600);
+        };
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(done).catch(() => {
+            tg?.showAlert ? tg.showAlert('کپی نشد، لینک رو دستی انتخاب کنید.') : alert('کپی نشد.');
+          });
+        } else {
+          done();
+        }
       });
     });
   }
@@ -970,10 +1024,31 @@
         '<div class="subs-empty"><b>👛</b>هنوز هیچ تراکنش کیف پولی ثبت نشده.<br>بعد از اولین شارژ یا خرید با کیف پول، همین‌جا می‌بینیدش!</div>';
       return;
     }
+    // Quick-glance summary at the top: total charged in vs. total spent from
+    // the wallet, computed client-side from the same rows — no extra
+    // backend call needed. Helps the user sanity-check their balance at a
+    // glance instead of having to add up every card by hand.
+    let totalIn = 0, totalOut = 0;
+    history.forEach((tx) => {
+      if (tx.type === 'topup') totalIn += Number(tx.amount) || 0;
+      else totalOut += Math.abs(Number(tx.amount) || 0);
+    });
+    const summaryHtml = `
+      <div class="wtx-summary">
+        <div class="wtx-summary-item">
+          <span class="wtx-summary-label">مجموع شارژ</span>
+          <span class="wtx-summary-value credit">${totalIn.toLocaleString('fa-IR')} ت</span>
+        </div>
+        <div class="wtx-summary-divider"></div>
+        <div class="wtx-summary-item">
+          <span class="wtx-summary-label">مجموع خرید</span>
+          <span class="wtx-summary-value">${totalOut.toLocaleString('fa-IR')} ت</span>
+        </div>
+      </div>`;
     // Oldest-first from the backend — show newest-first here since that's
     // more useful for a transaction history list.
     const rows = history.slice().reverse();
-    subsModalBody.innerHTML = rows.map((tx) => {
+    subsModalBody.innerHTML = summaryHtml + rows.map((tx) => {
       const isCredit = tx.type === 'topup';
       const sign = isCredit ? '+' : '−';
       const typeLabel = WTX_TYPE_LABELS[tx.type] || tx.type;

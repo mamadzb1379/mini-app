@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBS Online — پنل مدیریت</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1e222b; --line:#2a2f3a; --text:#f2f3f5; --hint:#9aa1ac;
+    --accent:#FFD300; --accent-text:#1a1a1a; --green:#3a8f4f; --red:#c0392b; --blue:#3b82f6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Vazirmatn', system-ui, sans-serif; min-height:100vh;}
+  body{padding:14px; max-width:1100px; margin:0 auto;}
+  a{color:var(--blue);}
+  h1,h2,h3,p{margin:0;}
+  button{cursor:pointer; font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
+  ::-webkit-scrollbar{height:8px; width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+
+  /* ---------- Token gate ---------- */
+  #gateOverlay{
+    position:fixed; inset:0; background:var(--bg); z-index:100;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  #gateOverlay.hide{display:none;}
+  .gate-card{
+    width:100%; max-width:360px; background:var(--card); border:1px solid var(--line); border-radius:18px;
+    padding:26px 22px; text-align:center;
+  }
+  .gate-icon{font-size:36px; margin-bottom:10px;}
+  .gate-title{font-weight:900; font-size:17px; margin-bottom:6px;}
+  .gate-sub{font-size:12.5px; color:var(--hint); margin-bottom:18px; line-height:1.8;}
+  .gate-input{
+    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px;
+    color:var(--text); font-size:14px; font-weight:700; text-align:center; direction:ltr; margin-bottom:12px;
+  }
+  .gate-btn{
+    width:100%; background:var(--accent); color:var(--accent-text); border:none; border-radius:12px;
+    padding:12px; font-weight:900; font-size:14px;
+  }
+  .gate-error{color:var(--red); font-size:12px; font-weight:700; margin-top:10px; display:none;}
+  .gate-error.show{display:block;}
+
+  /* ---------- Shell ---------- */
+  #app{display:none;}
+  #app.show{display:block;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+  .topbar-title{font-weight:900; font-size:18px;}
+  .topbar-actions{display:flex; gap:8px; align-items:center;}
+  .icon-btn{
+    background:var(--card); border:1px solid var(--line); color:var(--text); border-radius:10px;
+    padding:8px 12px; font-size:12.5px; font-weight:700;
+  }
+  #refreshedAt{font-size:11px; color:var(--hint);}
+
+  .warn-banner{
+    background:rgba(255,211,0,.08); border:1px solid rgba(255,211,0,.35); border-radius:12px;
+    padding:10px 12px; font-size:12px; color:var(--accent); margin-bottom:14px; display:none; line-height:1.8;
+  }
+  .warn-banner.show{display:block;}
+
+  .tabs{display:flex; gap:6px; overflow-x:auto; margin-bottom:16px; padding-bottom:2px;}
+  .tab-btn{
+    flex:none; background:var(--card); border:1px solid var(--line); color:var(--hint); border-radius:11px;
+    padding:9px 14px; font-size:12.5px; font-weight:800; white-space:nowrap;
+  }
+  .tab-btn.active{background:var(--accent); color:var(--accent-text); border-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ---------- Cards / stat grid ---------- */
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:10px; margin-bottom:16px;}
+  .stat-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .stat-label{font-size:11.5px; color:var(--hint); font-weight:700; margin-bottom:6px;}
+  .stat-value{font-size:18px; font-weight:900;}
+  .stat-value.accent{color:var(--accent);}
+
+  .section-title{font-weight:900; font-size:14px; margin:18px 0 10px;}
+  .card-box{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px;}
+
+  /* ---------- Tables ---------- */
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px; min-width:600px;}
+  th,td{padding:9px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line);}
+  th{background:var(--card2); font-weight:800; color:var(--hint); position:sticky; top:0;}
+  tr:last-child td{border-bottom:none;}
+  td.wrap{white-space:normal; max-width:260px;}
+  .pill{display:inline-block; padding:3px 9px; border-radius:999px; font-size:10.5px; font-weight:800;}
+  .pill.green{background:rgba(58,143,79,.18); color:#5fcb7a;}
+  .pill.red{background:rgba(192,57,43,.18); color:#e8695f;}
+  .pill.gray{background:rgba(154,161,172,.15); color:var(--hint);}
+  .empty-note{padding:20px; text-align:center; color:var(--hint); font-size:12.5px;}
+
+  .filter-row{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+  .filter-input{
+    flex:1; min-width:160px; background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    padding:9px 11px; color:var(--text); font-size:12.5px;
+  }
+
+  /* ---------- Coupon form ---------- */
+  .coupon-form{display:grid; grid-template-columns:repeat(auto-fit, minmax(110px,1fr)); gap:8px; margin-bottom:12px;}
+  .coupon-form input, .coupon-form select{
+    background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:9px 10px; color:var(--text); font-size:12.5px;
+  }
+  .form-btn{
+    background:var(--accent); color:var(--accent-text); border:none; border-radius:10px; padding:9px 16px;
+    font-weight:800; font-size:12.5px;
+  }
+  .form-msg{font-size:12px; margin-top:8px; display:none;}
+  .form-msg.show{display:block;}
+  .form-msg.error{color:var(--red);}
+  .form-msg.success{color:#5fcb7a;}
+
+  /* ---------- Broadcast ---------- */
+  #broadcastText{
+    width:100%; min-height:120px; background:var(--bg); border:1px solid var(--line); border-radius:12px;
+    padding:12px; color:var(--text); font-size:13px; line-height:1.8; resize:vertical; margin-bottom:10px;
+  }
+  .broadcast-meta{font-size:11.5px; color:var(--hint); margin-bottom:10px;}
+  #broadcastResult{font-size:12.5px; margin-top:10px; line-height:1.9; display:none; padding:10px; border-radius:10px; background:var(--card2);}
+  #broadcastResult.show{display:block;}
+
+  .loading-spin{
+    display:inline-block; width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--accent);
+    border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="gateOverlay">
+  <div class="gate-card">
+    <div class="gate-icon">🔐</div>
+    <p class="gate-title">پنل مدیریت MBS Online</p>
+    <p class="gate-sub">توکن دسترسی رو وارد کنید — همون مقداری که در Script Property به اسم <b>ADMIN_PANEL_TOKEN</b> ست کردید.</p>
+    <input type="password" class="gate-input" id="gateTokenInput" placeholder="ADMIN_PANEL_TOKEN" autocomplete="off">
+    <button class="gate-btn" id="gateSubmitBtn" type="button">ورود</button>
+    <p class="gate-error" id="gateError"></p>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <p class="topbar-title">📊 MBS Online — پنل مدیریت</p>
+    <div class="topbar-actions">
+      <span id="refreshedAt"></span>
+      <button class="icon-btn" id="refreshBtn" type="button">🔄 بروزرسانی</button>
+      <button class="icon-btn" id="logoutBtn" type="button">خروج</button>
+    </div>
+  </div>
+
+  <p class="warn-banner" id="warnBanner"></p>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="stats" type="button">📊 آمار</button>
+    <button class="tab-btn" data-tab="pending" type="button">⏳ در انتظار</button>
+    <button class="tab-btn" data-tab="purchases" type="button">🧾 خریدها</button>
+    <button class="tab-btn" data-tab="wallet" type="button">👛 کیف پول</button>
+    <button class="tab-btn" data-tab="coupons" type="button">🎟 کدهای تخفیف</button>
+    <button class="tab-btn" data-tab="messages" type="button">💬 پیام‌ها</button>
+    <button class="tab-btn" data-tab="broadcast" type="button">📢 پیام همگانی</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="tab-panel active" id="tabStats">
+    <div class="stat-grid">
+      <div class="stat-card"><p class="stat-label">درآمد امروز</p><p class="stat-value accent" id="statToday">—</p></div>
+      <div class="stat-card"><p class="stat-label">درآمد ۷ روز اخیر</p><p class="stat-value" id="statWeek">—</p></div>
+      <div class="stat-card"><p class="stat-label">درآمد ۳۰ روز اخیر</p><p class="stat-value" id="statMonth">—</p></div>
+      <div class="stat-card"><p class="stat-label">درآمد کل</p><p class="stat-value" id="statAllTime">—</p></div>
+      <div class="stat-card"><p class="stat-label">تعداد کاربران</p><p class="stat-value" id="statUsers">—</p></div>
+      <div class="stat-card"><p class="stat-label">مانده کیف پول‌ها (بدهی)</p><p class="stat-value" id="statWalletOutstanding">—</p></div>
+      <div class="stat-card"><p class="stat-label">تعداد کل خریدها</p><p class="stat-value" id="statPurchaseCount">—</p></div>
+      <div class="stat-card"><p class="stat-label">در انتظار پیگیری</p><p class="stat-value" id="statPendingCount">—</p></div>
+    </div>
+  </div>
+
+  <!-- PENDING -->
+  <div class="tab-panel" id="tabPending">
+    <p class="section-title">درخواست‌هایی که هنوز پاسخ/کانفیگ نگرفتن</p>
+    <div class="table-wrap"><table id="pendingTable">
+      <thead><tr><th>فاکتور</th><th>کاربر</th><th>نوع</th><th>متن</th><th>زمان</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+  <!-- PURCHASES -->
+  <div class="tab-panel" id="tabPurchases">
+    <div class="filter-row">
+      <input class="filter-input" id="purchaseFilter" placeholder="جست‌وجو بر اساس شناسه کاربر، پلن یا شماره فاکتور…">
+    </div>
+    <div class="table-wrap"><table id="purchasesTable">
+      <thead><tr><th>#</th><th>کاربر</th><th>پلن</th><th>مبلغ</th><th>حجم/روز اضافه</th><th>فاکتور</th><th>زمان</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="tab-panel" id="tabWallet">
+    <div class="filter-row">
+      <input class="filter-input" id="ledgerFilter" placeholder="جست‌وجو بر اساس شناسه کاربر یا یادداشت…">
+    </div>
+    <div class="table-wrap"><table id="ledgerTable">
+      <thead><tr><th>کاربر</th><th>نوع</th><th>مبلغ</th><th>یادداشت</th><th>فاکتور</th><th>زمان</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+  <!-- COUPONS -->
+  <div class="tab-panel" id="tabCoupons">
+    <p class="section-title">ساخت کد تخفیف جدید</p>
+    <div class="card-box">
+      <div class="coupon-form">
+        <input id="couponCodeInput" placeholder="کد (مثلاً OFF20)">
+        <select id="couponTypeInput">
+          <option value="percent">درصدی</option>
+          <option value="fixed">مبلغ ثابت</option>
+        </select>
+        <input id="couponValueInput" type="number" placeholder="مقدار (٪ یا تومان)">
+        <input id="couponMaxUsesInput" type="number" placeholder="سقف استفاده (۰=نامحدود)">
+        <input id="couponExpiresInput" type="date" placeholder="تاریخ انقضا">
+        <button class="form-btn" id="couponCreateBtn" type="button">➕ ساخت کد</button>
+      </div>
+      <input id="couponNoteInput" class="filter-input" placeholder="یادداشت داخلی (اختیاری)" style="margin-bottom:0;">
+      <p class="form-msg" id="couponFormMsg"></p>
+    </div>
+    <p class="section-title">کدهای موجود</p>
+    <div class="table-wrap"><table id="couponsTable">
+      <thead><tr><th>کد</th><th>نوع</th><th>مقدار</th><th>استفاده‌شده</th><th>سقف</th><th>انقضا</th><th>وضعیت</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="tab-panel" id="tabMessages">
+    <div class="filter-row">
+      <input class="filter-input" id="messageFilter" placeholder="فیلتر بر اساس شناسه کاربر…">
+    </div>
+    <div class="table-wrap"><table id="messagesTable">
+      <thead><tr><th>کاربر</th><th>جهت</th><th>نوع</th><th class="wrap">متن</th><th>زمان</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+  <!-- BROADCAST -->
+  <div class="tab-panel" id="tabBroadcast">
+    <p class="section-title">ارسال پیام همگانی به همه‌ی کاربران ربات</p>
+    <div class="card-box">
+      <p class="broadcast-meta" id="broadcastUserCountNote">تعداد کاربران: —</p>
+      <textarea id="broadcastText" placeholder="متن پیام…"></textarea>
+      <button class="form-btn" id="broadcastSendBtn" type="button">📢 ارسال به همه</button>
+      <p id="broadcastResult"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbw78w78aheLjix9qu-20xkUGh8z2W9Gs6XNWjUQbBfIAl33ZkGyGrMbCNCjGfehq9L0QQ/exec';
+  const TOKEN_KEY = 'mbs_admin_panel_token';
+
+  let token = '';
+  try { token = localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { /* private mode etc — just re-prompt each time */ }
+  let lastData = null;
+
+  const gateOverlay = document.getElementById('gateOverlay');
+  const gateTokenInput = document.getElementById('gateTokenInput');
+  const gateSubmitBtn = document.getElementById('gateSubmitBtn');
+  const gateError = document.getElementById('gateError');
+  const appEl = document.getElementById('app');
+
+  function showGate(errorText) {
+    gateOverlay.classList.remove('hide');
+    appEl.classList.remove('show');
+    if (errorText) { gateError.textContent = errorText; gateError.classList.add('show'); }
+    else { gateError.classList.remove('show'); }
+  }
+  function showApp() {
+    gateOverlay.classList.add('hide');
+    appEl.classList.add('show');
+  }
+
+  async function fetchAdminData() {
+    const res = await fetch(`${API_URL}?action=admin_panel_data&token=${encodeURIComponent(token)}&limit=500`).then((r) => r.json());
+    return res;
+  }
+
+  async function loadData(isRetry) {
+    if (!token) { showGate(); return; }
+    try {
+      const res = await fetchAdminData();
+      if (!res || !res.ok) {
+        if (res && res.error === 'unauthorized') {
+          try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+          token = '';
+          showGate('توکن اشتباهه — دوباره امتحان کنید.');
+          return;
+        }
+        showGate('خطا در دریافت اطلاعات: ' + ((res && res.error) || 'نامشخص'));
+        return;
+      }
+      lastData = res;
+      showApp();
+      renderAll(res);
+      document.getElementById('refreshedAt').textContent = 'آخرین بروزرسانی: ' + new Date().toLocaleTimeString('fa-IR');
+    } catch (err) {
+      if (!isRetry) { showGate('ارتباط با سرور برقرار نشد. دوباره تلاش کنید.'); }
+    }
+  }
+
+  gateSubmitBtn.addEventListener('click', () => {
+    const val = (gateTokenInput.value || '').trim();
+    if (!val) return;
+    token = val;
+    try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
+    loadData();
+  });
+  gateTokenInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') gateSubmitBtn.click(); });
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    token = '';
+    gateTokenInput.value = '';
+    showGate();
+  });
+  document.getElementById('refreshBtn').addEventListener('click', () => loadData());
+
+  /* ---------- Tabs ---------- */
+  document.getElementById('tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
+    const tabName = btn.dataset.tab;
+    document.querySelectorAll('.tab-panel').forEach((p) => {
+      p.classList.toggle('active', p.id === 'tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+    });
+  });
+
+  function toman(n) { return (Number(n) || 0).toLocaleString('fa-IR') + ' ت'; }
+  function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+
+  function renderAll(res) {
+    // Warnings banner
+    const warnBanner = document.getElementById('warnBanner');
+    if (res.warnings && res.warnings.length) {
+      const labels = {
+        supabase_not_configured: 'لاگ پیام‌ها/در انتظار: Supabase تنظیم نشده',
+        supabase_error: 'خطا در دریافت لاگ پیام‌ها از Supabase',
+        supabase_unavailable: 'ارتباط با Supabase برقرار نشد'
+      };
+      const shown = res.warnings.map((w) => {
+        const key = w.split(':')[0];
+        if (labels[key]) return labels[key];
+        if (key === 'purchases_unavailable') return 'بخش خریدها: شیت Purchases تنظیم نشده (setupPurchasesSheet را اجرا کنید)';
+        if (key === 'wallet_ledger_unavailable') return 'بخش کیف پول: شیت Ledger تنظیم نشده (setupWalletSheet را اجرا کنید)';
+        if (key === 'coupons_unavailable') return 'بخش کدهای تخفیف: شیت Coupons تنظیم نشده (setupCouponsSheet را اجرا کنید)';
+        if (key === 'users_unavailable') return 'شمارش کاربران: شیت Users تنظیم نشده (setupUsersSheet را اجرا کنید)';
+        return w;
+      });
+      warnBanner.innerHTML = '⚠️ ' + shown.join(' — ');
+      warnBanner.classList.add('show');
+    } else {
+      warnBanner.classList.remove('show');
+    }
+
+    // Stats
+    const rev = res.revenue || { today: 0, week: 0, month: 0, allTime: 0 };
+    document.getElementById('statToday').textContent = toman(rev.today);
+    document.getElementById('statWeek').textContent = toman(rev.week);
+    document.getElementById('statMonth').textContent = toman(rev.month);
+    document.getElementById('statAllTime').textContent = toman(rev.allTime);
+    document.getElementById('statUsers').textContent = (res.userCount || 0).toLocaleString('fa-IR');
+    document.getElementById('statWalletOutstanding').textContent = toman(res.walletOutstanding);
+    document.getElementById('statPurchaseCount').textContent = (res.purchasesTotalCount || 0).toLocaleString('fa-IR');
+    document.getElementById('statPendingCount').textContent = ((res.pendingInvoices || []).length).toLocaleString('fa-IR');
+    document.getElementById('broadcastUserCountNote').textContent = 'تعداد کاربران: ' + (res.userCount || 0).toLocaleString('fa-IR');
+
+    renderPending(res.pendingInvoices || []);
+    renderPurchases(res.purchases || []);
+    renderLedger(res.walletLedger || []);
+    renderCoupons(res.coupons || []);
+    renderMessages(res.messages || []);
+  }
+
+  const PENDING_TYPE_LABEL = { receipt: '🧾 رسید کارت', wallet_purchase: '👛 کیف پول', stars_payment: '⭐ استارز' };
+  function renderPending(rows) {
+    const tbody = document.querySelector('#pendingTable tbody');
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-note">چیزی در انتظار پیگیری نیست 🎉</td></tr>`; return; }
+    tbody.innerHTML = rows.map((r) => `
+      <tr>
+        <td>${esc(r.invoiceNumber)}</td>
+        <td>${esc(r.userId)}</td>
+        <td>${PENDING_TYPE_LABEL[r.messageType] || esc(r.messageType)}</td>
+        <td class="wrap">${esc((r.content || '').slice(0, 140))}</td>
+        <td>${esc(r.createdAt)}</td>
+      </tr>`).join('');
+  }
+
+  let allPurchasesCache = [];
+  function renderPurchases(rows) {
+    allPurchasesCache = rows;
+    applyPurchaseFilter();
+  }
+  function applyPurchaseFilter() {
+    const q = (document.getElementById('purchaseFilter').value || '').trim().toLowerCase();
+    const filtered = q ? allPurchasesCache.filter((r) =>
+      String(r.userId).toLowerCase().includes(q) ||
+      String(r.planLabel).toLowerCase().includes(q) ||
+      String(r.invoiceNumber).toLowerCase().includes(q)
+    ) : allPurchasesCache;
+    const tbody = document.querySelector('#purchasesTable tbody');
+    if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-note">چیزی پیدا نشد.</td></tr>`; return; }
+    tbody.innerHTML = filtered.map((r) => `
+      <tr>
+        <td>${esc(r.orderIndex)}</td>
+        <td>${esc(r.userId)}</td>
+        <td class="wrap">${esc(r.planLabel)}</td>
+        <td>${toman(r.price)}</td>
+        <td>${r.extraVolumeGB ? esc(r.extraVolumeGB) + ' گیگ ' : ''}${r.extraDays ? esc(r.extraDays) + ' روز' : ''}</td>
+        <td>${esc(r.invoiceNumber)}</td>
+        <td>${esc(r.timestamp)}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('purchaseFilter').addEventListener('input', applyPurchaseFilter);
+
+  let allLedgerCache = [];
+  const LEDGER_TYPE_LABEL = { topup: '💰 شارژ', purchase: '🛒 خرید' };
+  function renderLedger(rows) {
+    allLedgerCache = rows;
+    applyLedgerFilter();
+  }
+  function applyLedgerFilter() {
+    const q = (document.getElementById('ledgerFilter').value || '').trim().toLowerCase();
+    const filtered = q ? allLedgerCache.filter((r) =>
+      String(r.userId).toLowerCase().includes(q) || String(r.note).toLowerCase().includes(q)
+    ) : allLedgerCache;
+    const tbody = document.querySelector('#ledgerTable tbody');
+    if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty-note">چیزی پیدا نشد.</td></tr>`; return; }
+    tbody.innerHTML = filtered.map((r) => `
+      <tr>
+        <td>${esc(r.userId)}</td>
+        <td>${LEDGER_TYPE_LABEL[r.type] || esc(r.type)}</td>
+        <td>${r.amount >= 0 ? '+' : ''}${toman(r.amount)}</td>
+        <td class="wrap">${esc(r.note)}</td>
+        <td>${esc(r.invoiceNumber)}</td>
+        <td>${esc(r.timestamp)}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('ledgerFilter').addEventListener('input', applyLedgerFilter);
+
+  function renderCoupons(rows) {
+    const tbody = document.querySelector('#couponsTable tbody');
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty-note">هنوز کد تخفیفی ساخته نشده.</td></tr>`; return; }
+    tbody.innerHTML = rows.map((r) => `
+      <tr>
+        <td>${esc(r.code)}</td>
+        <td>${r.type === 'percent' ? 'درصدی' : 'مبلغ ثابت'}</td>
+        <td>${r.type === 'percent' ? esc(r.value) + '٪' : toman(r.value)}</td>
+        <td>${esc(r.usedCount)}</td>
+        <td>${Number(r.maxUses) > 0 ? esc(r.maxUses) : 'نامحدود'}</td>
+        <td>${esc(r.expiresAt) || '—'}</td>
+        <td><span class="pill ${r.active ? 'green' : 'red'}">${r.active ? 'فعال' : 'غیرفعال'}</span></td>
+        <td><button class="icon-btn" data-toggle-coupon="${esc(r.code)}" type="button">${r.active ? 'غیرفعال کن' : 'فعال کن'}</button></td>
+      </tr>`).join('');
+    tbody.querySelectorAll('[data-toggle-coupon]').forEach((btn) => {
+      btn.addEventListener('click', () => toggleCoupon(btn.dataset.toggleCoupon));
+    });
+  }
+
+  async function toggleCoupon(code) {
+    try {
+      const res = await fetch(`${API_URL}?action=admin_coupon_write&token=${encodeURIComponent(token)}&mode=toggle&code=${encodeURIComponent(code)}`).then((r) => r.json());
+      if (res && res.ok) loadData();
+      else alert('عملیات ناموفق: ' + ((res && res.error) || 'نامشخص'));
+    } catch (err) { alert('ارتباط برقرار نشد.'); }
+  }
+
+  document.getElementById('couponCreateBtn').addEventListener('click', async () => {
+    const code = (document.getElementById('couponCodeInput').value || '').trim();
+    const type = document.getElementById('couponTypeInput').value;
+    const value = document.getElementById('couponValueInput').value;
+    const maxUses = document.getElementById('couponMaxUsesInput').value || '0';
+    const expiresAt = document.getElementById('couponExpiresInput').value || '';
+    const note = document.getElementById('couponNoteInput').value || '';
+    const msgEl = document.getElementById('couponFormMsg');
+    if (!code || !value) {
+      msgEl.textContent = 'کد و مقدار الزامیه.'; msgEl.className = 'form-msg show error'; return;
+    }
+    const params = new URLSearchParams({ action: 'admin_coupon_write', token, mode: 'create', code, type, value, maxUses, expiresAt, note });
+    try {
+      const res = await fetch(`${API_URL}?${params.toString()}`).then((r) => r.json());
+      if (res && res.ok) {
+        msgEl.textContent = '✅ کد «' + res.code + '» ساخته شد.'; msgEl.className = 'form-msg show success';
+        document.getElementById('couponCodeInput').value = '';
+        document.getElementById('couponValueInput').value = '';
+        document.getElementById('couponMaxUsesInput').value = '';
+        document.getElementById('couponExpiresInput').value = '';
+        document.getElementById('couponNoteInput').value = '';
+        loadData();
+      } else {
+        const errLabels = { duplicate_code: 'این کد قبلاً ساخته شده.', bad_type: 'نوع تخفیف نامعتبره.', bad_value: 'مقدار نامعتبره.' };
+        msgEl.textContent = '❌ ' + (errLabels[res && res.error] || (res && res.error) || 'خطای نامشخص'); msgEl.className = 'form-msg show error';
+      }
+    } catch (err) {
+      msgEl.textContent = '❌ ارتباط برقرار نشد.'; msgEl.className = 'form-msg show error';
+    }
+  });
+
+  const DIRECTION_LABEL = { user_to_admin: '⬅️ کاربر به ادمین', admin_to_user: '➡️ ادمین به کاربر' };
+  let allMessagesCache = [];
+  function renderMessages(rows) {
+    allMessagesCache = rows;
+    applyMessageFilter();
+  }
+  function applyMessageFilter() {
+    const q = (document.getElementById('messageFilter').value || '').trim();
+    const filtered = q ? allMessagesCache.filter((r) => String(r.user_id) === q) : allMessagesCache;
+    const tbody = document.querySelector('#messagesTable tbody');
+    if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-note">پیامی پیدا نشد.</td></tr>`; return; }
+    tbody.innerHTML = filtered.slice(0, 300).map((r) => `
+      <tr>
+        <td>${esc(r.user_id)}</td>
+        <td>${DIRECTION_LABEL[r.direction] || esc(r.direction)}</td>
+        <td>${esc(r.message_type)}</td>
+        <td class="wrap">${esc((r.content || '').slice(0, 200))}</td>
+        <td>${esc(r.created_at)}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('messageFilter').addEventListener('input', applyMessageFilter);
+
+  document.getElementById('broadcastSendBtn').addEventListener('click', async () => {
+    const text = (document.getElementById('broadcastText').value || '').trim();
+    const resultEl = document.getElementById('broadcastResult');
+    if (!text) return;
+    const userCount = (lastData && lastData.userCount) || 0;
+    if (!confirm(`این پیام برای ${userCount.toLocaleString('fa-IR')} کاربر ارسال می‌شه. مطمئنی؟`)) return;
+    const btn = document.getElementById('broadcastSendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spin"></span> در حال ارسال…';
+    resultEl.classList.remove('show');
+    try {
+      const params = new URLSearchParams({ action: 'admin_broadcast', token, text });
+      const res = await fetch(`${API_URL}?${params.toString()}`).then((r) => r.json());
+      if (res && res.ok) {
+        resultEl.textContent = `✅ ارسال شد به ${res.sent.toLocaleString('fa-IR')} نفر از ${res.total.toLocaleString('fa-IR')} کاربر` +
+          (res.failed ? ` (${res.failed.toLocaleString('fa-IR')} ناموفق — معمولاً یعنی کاربر ربات رو بلاک کرده)` : '') +
+          (res.note ? '\n' + res.note : '');
+      } else {
+        resultEl.textContent = '❌ ارسال ناموفق: ' + ((res && res.error) || 'نامشخص');
+      }
+      resultEl.classList.add('show');
+    } catch (err) {
+      resultEl.textContent = '❌ ارتباط برقرار نشد.';
+      resultEl.classList.add('show');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📢 ارسال به همه';
+    }
+  });
+
+  // Boot
+  if (token) loadData(); else showGate();
+</script>
+</body>
+</html>

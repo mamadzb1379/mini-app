@@ -1735,7 +1735,10 @@
           ? 'پرداخت با استارز فعلاً در دسترس نیست، لطفاً از روش دیگه‌ای استفاده کنید.'
           : (res && typeof res.error === 'string' && res.error.indexOf('coupon_') === 0)
             ? (COUPON_ERROR_TEXT[res.error.slice('coupon_'.length)] || 'کد تخفیف معتبر نیست.')
-            : 'ساخت فاکتور پرداخت ممکن نشد، دوباره تلاش کنید.';
+            // errorDetail carries Telegram's own error text when
+            // createInvoiceLink itself rejects the request — showing it
+            // directly is far more diagnosable than a generic dead-end.
+            : (res && res.errorDetail ? 'ساخت فاکتور پرداخت ممکن نشد: ' + res.errorDetail : 'ساخت فاکتور پرداخت ممکن نشد، دوباره تلاش کنید.');
         starsPayStatusEl.textContent = '❌ ' + errText;
         starsPayStatusEl.classList.add('show');
         tg?.HapticFeedback?.notificationOccurred('error');

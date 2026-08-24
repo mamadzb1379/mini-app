@@ -164,6 +164,38 @@
   .pay-section{display:none; margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
   .pay-section.show{display:block;}
   .pay-title{display:flex; align-items:center; gap:8px; font-weight:900; font-size:15px; margin:0 0 12px;}
+  /* Coupon code box — sits above the payment-method tabs so a discount
+     applies no matter which method (card/wallet) the user ends up
+     picking. Two mutually-exclusive rows: the input+apply row (default)
+     and the applied-state row (shown once a valid code is active). */
+  .coupon-box{margin-bottom:14px;}
+  .coupon-row{display:flex; gap:8px;}
+  .coupon-input{
+    flex:1; min-width:0; background:var(--bg); border:1px solid var(--line); border-radius:12px;
+    padding:11px 12px; font-family:inherit; font-size:13px; font-weight:800; color:var(--text);
+    direction:ltr; text-align:right; text-transform:uppercase;
+  }
+  .coupon-input::placeholder{text-transform:none; font-weight:600; color:var(--hint);}
+  .coupon-apply-btn{
+    flex:none; background:var(--text); color:var(--card); border:none; border-radius:12px;
+    padding:0 18px; font-family:inherit; font-size:13px; font-weight:800; cursor:pointer;
+  }
+  .coupon-apply-btn:disabled{opacity:.55; cursor:default;}
+  .coupon-applied-row{
+    display:none; align-items:center; justify-content:space-between; gap:8px;
+    background:rgba(58,143,79,.14); border:1px solid #3a8f4f; border-radius:12px; padding:10px 12px;
+  }
+  .coupon-box.applied .coupon-row{display:none;}
+  .coupon-box.applied .coupon-applied-row{display:flex;}
+  #couponAppliedText{font-size:12.5px; font-weight:800; color:#276b38;}
+  .coupon-remove-btn{
+    flex:none; background:none; border:none; color:#276b38; font-family:inherit;
+    font-size:11.5px; font-weight:800; cursor:pointer; text-decoration:underline;
+  }
+  .coupon-msg{font-size:11.5px; font-weight:700; margin:6px 2px 0; color:var(--hint); display:none;}
+  .coupon-msg.show{display:block;}
+  .coupon-msg.error{color:#b3392f;}
+  .pay-discount-line{font-size:12px; font-weight:800; color:#276b38; margin:-6px 0 10px;}
   .pay-methods{display:flex; gap:8px; margin-bottom:14px;}
   .pay-method-btn{
     flex:1; padding:10px 8px; border-radius:12px; border:1px solid var(--line); background:var(--bg);
@@ -566,12 +598,21 @@
   <!-- Payment -->
   <div class="pay-section" id="paySection">
     <p class="pay-title">💳 پرداخت</p>
+    <div class="coupon-box" id="couponBox">
+      <div class="coupon-row" id="couponInputRow">
+        <input type="text" class="coupon-input" id="couponInput" placeholder="کد تخفیف (اختیاری)" autocapitalize="characters">
+        <button class="coupon-apply-btn" id="couponApplyBtn" type="button">اعمال</button>
+      </div>
+      <div class="coupon-applied-row" id="couponAppliedRow">
+        <span id="couponAppliedText"></span>
+        <button class="coupon-remove-btn" id="couponRemoveBtn" type="button">✕ حذف</button>
+      </div>
+      <p class="coupon-msg" id="couponMsg"></p>
+    </div>
     <div class="pay-methods">
       <button class="pay-method-btn active" id="payMethodCardBtn" type="button">کارت‌به‌کارت</button>
       <button class="pay-method-btn" id="payMethodWalletBtn" type="button">👛 کیف پول</button>
-      <button class="pay-method-btn" id="payMethodCryptoBtn" type="button">
-        استارز / ارز دیجیتال <span class="soon-badge">به‌زودی</span>
-      </button>
+      <button class="pay-method-btn" id="payMethodCryptoBtn" type="button">⭐️ استارز تلگرام</button>
     </div>
     <div class="pay-method-panel active" id="payMethodCardPanel">
       <div class="pay-cards">
@@ -595,6 +636,7 @@
         </div>
       </div>
       <p class="pay-amount"><span class="amount-label">مبلغ قابل پرداخت</span><b id="payAmount">—</b> تومان</p>
+      <p class="pay-discount-line" id="payDiscountLine"></p>
       <p class="pay-note">مبلغ رو دقیقاً به یکی از کارت‌های بالا کارت‌به‌کارت کنید، عکس رسید رو انتخاب و ارسال کنید. پس از بررسی توسط پشتیبانی، پلن براتون فعال میشه.</p>
       <input type="file" id="receiptInput" accept="image/*" style="display:none;">
       <button class="copy-btn" id="pickReceiptBtn" type="button">📎 انتخاب تصویر رسید</button>
@@ -610,11 +652,11 @@
       <p class="pay-status" id="walletPayStatus"></p>
     </div>
     <div class="pay-method-panel" id="payMethodCryptoPanel">
-      <div class="crypto-soon">
-        <span class="big-icon">⭐️ ₿</span>
-        پرداخت با Telegram Stars و ارزهای دیجیتال به‌زودی فعال می‌شود.<br>
-        فعلاً برای ادامه‌ی خرید از روش کارت‌به‌کارت استفاده کنید.
-      </div>
+      <p class="pay-amount"><span class="amount-label">مبلغ قابل پرداخت</span><b id="starsPayAmount">—</b> تومان</p>
+      <p class="pay-discount-line" id="starsDiscountLine"></p>
+      <p class="pay-note">با تأیید، صفحه‌ی پرداخت رسمی تلگرام باز می‌شه و مبلغ دقیق به ⭐️ استارز اونجا نمایش داده می‌شه. پرداخت با استارز آنی و قطعیه — نیازی به ارسال رسید یا صبر برای بررسی نیست.</p>
+      <button class="pay-confirm-btn" id="starsPayConfirmBtn" type="button">⭐️ پرداخت با استارز</button>
+      <p class="pay-status" id="starsPayStatus"></p>
     </div>
   </div>
   <!-- Apps + video guide (always visible, not a dropdown) -->
@@ -753,7 +795,7 @@
     <p class="invite-count" id="inviteCount"></p>
     <button class="invite-share-btn" id="inviteShareBtn" type="button">🔗 اشتراک‌گذاری لینک دعوت من</button>
   </div>
-  <p class="footer-note">MBS Online — نسخه 2.1</p>
+  <p class="footer-note">MBS Online — نسخه 2.2</p>
 </div>
 <!-- "اشتراک‌های من" — purchase-history modal (hidden until opened from the
      profile menu or the bot's "📦 اشتراک‌های من" button) -->
@@ -1302,6 +1344,8 @@
   const summaryEl = document.getElementById('selectedSummary');
   const paySection = document.getElementById('paySection');
   const payAmountEl = document.getElementById('payAmount');
+  const starsPayAmountEl = document.getElementById('starsPayAmount');
+  const starsDiscountLineEl = document.getElementById('starsDiscountLine');
   const payStatusEl = document.getElementById('payStatus');
   const addonSection = document.getElementById('addonSection');
   const addonTotalNote = document.getElementById('addonTotalNote');
@@ -1369,9 +1413,110 @@
   function addonTotalPrice() {
     return (extraVolume * VOL_PRICE_PER_GB) + (extraDays * DAY_PRICE_PER_DAY);
   }
+
+  /* ---------- Coupon codes ----------
+     appliedCoupon holds {code, type, value} once a code is validated
+     against the backend (validateCoupon_). The discount itself is then
+     recomputed locally (couponDiscountedTotal) every time the plan/addons
+     change, so switching plans doesn't require another round trip — the
+     real, authoritative discount is still always recomputed server-side
+     the moment a purchase actually happens (wallet_purchase), this local
+     copy is only for showing the right number on screen. */
+  let appliedCoupon = null;
+  const couponBoxEl = document.getElementById('couponBox');
+  const couponInputEl = document.getElementById('couponInput');
+  const couponApplyBtn = document.getElementById('couponApplyBtn');
+  const couponAppliedText = document.getElementById('couponAppliedText');
+  const couponRemoveBtn = document.getElementById('couponRemoveBtn');
+  const couponMsgEl = document.getElementById('couponMsg');
+  const payDiscountLineEl = document.getElementById('payDiscountLine');
+  const COUPON_ERROR_TEXT = {
+    not_found: 'این کد تخفیف پیدا نشد.',
+    inactive: 'این کد تخفیف غیرفعال شده.',
+    expired: 'این کد تخفیف منقضی شده.',
+    max_uses: 'ظرفیت استفاده از این کد تخفیف تموم شده.',
+    bad_type: 'این کد تخفیف قابل استفاده نیست.',
+    no_code: 'یه کد وارد کنید.'
+  };
+  function rawSelectedTotal() {
+    return (selectedPlan?.price || 0) + addonTotalPrice();
+  }
+  function couponDiscountedTotal(base) {
+    if (!appliedCoupon || base <= 0) return base;
+    let discounted = base;
+    if (appliedCoupon.type === 'percent') {
+      const pct = Math.max(0, Math.min(100, appliedCoupon.value));
+      discounted = base - Math.round(base * pct / 100);
+    } else if (appliedCoupon.type === 'fixed') {
+      discounted = base - Math.max(0, appliedCoupon.value);
+    }
+    return Math.max(1000, Math.round(discounted));
+  }
+  function finalSelectedTotal() {
+    return couponDiscountedTotal(rawSelectedTotal());
+  }
+  function showCouponMsg(text, isError) {
+    couponMsgEl.textContent = text;
+    couponMsgEl.classList.toggle('show', !!text);
+    couponMsgEl.classList.toggle('error', !!isError);
+  }
+  async function applyCouponCode(rawCode) {
+    const code = (rawCode || '').trim();
+    if (!code) { showCouponMsg(COUPON_ERROR_TEXT.no_code, true); return; }
+    couponApplyBtn.disabled = true;
+    couponApplyBtn.textContent = '…';
+    try {
+      const params = new URLSearchParams({ action: 'validate_coupon', code });
+      if (selectedPlan) {
+        params.set('planId', selectedPlan.id);
+        params.set('extraVolumeGB', String(extraVolume));
+        params.set('extraDays', String(extraDays));
+      }
+      const res = await fetch(`${VISIT_LOG_URL}?${params.toString()}`).then((r) => r.json());
+      if (res && res.ok) {
+        appliedCoupon = { code: res.code, type: res.type, value: res.value };
+        couponBoxEl.classList.add('applied');
+        const discountLabel = res.type === 'percent' ? `٪${Number(res.value).toLocaleString('fa-IR')}` : `${Number(res.value).toLocaleString('fa-IR')} تومان`;
+        couponAppliedText.textContent = `✅ کد «${res.code}» اعمال شد — ${discountLabel} تخفیف`;
+        showCouponMsg('', false);
+        tg?.HapticFeedback?.notificationOccurred('success');
+      } else {
+        showCouponMsg(COUPON_ERROR_TEXT[res?.error] || 'اعمال کد تخفیف ممکن نشد.', true);
+        tg?.HapticFeedback?.notificationOccurred('error');
+      }
+    } catch (err) {
+      showCouponMsg('ارتباط برقرار نشد، دوباره تلاش کنید.', true);
+    } finally {
+      couponApplyBtn.disabled = false;
+      couponApplyBtn.textContent = 'اعمال';
+      updatePayAmount();
+    }
+  }
+  couponApplyBtn.addEventListener('click', () => applyCouponCode(couponInputEl.value));
+  couponInputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyCouponCode(couponInputEl.value); });
+  couponRemoveBtn.addEventListener('click', () => {
+    appliedCoupon = null;
+    couponBoxEl.classList.remove('applied');
+    couponInputEl.value = '';
+    showCouponMsg('', false);
+    tg?.HapticFeedback?.selectionChanged();
+    updatePayAmount();
+  });
+
   function updatePayAmount() {
-    const total = (selectedPlan?.price || 0) + addonTotalPrice();
+    const raw = rawSelectedTotal();
+    const total = couponDiscountedTotal(raw);
     payAmountEl.textContent = total.toLocaleString('fa-IR');
+    if (starsPayAmountEl) starsPayAmountEl.textContent = total.toLocaleString('fa-IR');
+    if (appliedCoupon && total < raw) {
+      const discountText = `🎉 با کد تخفیف «${appliedCoupon.code}»، ${(raw - total).toLocaleString('fa-IR')} تومان کمتر پرداخت می‌کنید (قیمت اصلی: ${raw.toLocaleString('fa-IR')} تومان)`;
+      payDiscountLineEl.textContent = discountText;
+      payDiscountLineEl.style.display = 'block';
+      if (starsDiscountLineEl) { starsDiscountLineEl.textContent = discountText; starsDiscountLineEl.style.display = 'block'; }
+    } else {
+      payDiscountLineEl.style.display = 'none';
+      if (starsDiscountLineEl) starsDiscountLineEl.style.display = 'none';
+    }
     const addonCost = addonTotalPrice();
     if (addonCost > 0) {
       addonTotalNote.innerHTML = `هزینه افزودنی‌ها: <b>${addonCost.toLocaleString('fa-IR')}</b> تومان`;
@@ -1458,7 +1603,7 @@
   // has been picked or the balance has loaded yet.
   function refreshWalletPayPanel() {
     if (!walletPayConfirmBtn || !walletPayNoteEl) return;
-    const total = (selectedPlan?.price || 0) + addonTotalPrice();
+    const total = finalSelectedTotal();
     if (!selectedPlan) {
       walletPayNoteEl.textContent = 'ابتدا یک پلن انتخاب کنید.';
       walletPayConfirmBtn.disabled = true;
@@ -1480,7 +1625,7 @@
   }
   walletPayConfirmBtn.addEventListener('click', async () => {
     if (!selectedPlan) return;
-    const total = (selectedPlan?.price || 0) + addonTotalPrice();
+    const total = finalSelectedTotal();
     if (currentWalletBalance === null || currentWalletBalance < total) {
       tg?.HapticFeedback?.notificationOccurred('error');
       refreshWalletPayPanel();
@@ -1500,6 +1645,10 @@
         extraDays: String(extraDays),
         invoiceNumber
       });
+      // The server recomputes the discount from scratch (see
+      // validateCoupon_/applyCouponDiscount_ in handleWalletPurchaseQuery_)
+      // — this is only which code to look up, never a trusted amount.
+      if (appliedCoupon) params.set('couponCode', appliedCoupon.code);
       const res = await fetch(`${VISIT_LOG_URL}?${params.toString()}`).then((r) => r.json());
       if (res && res.ok) {
         currentWalletBalance = Number(res.newBalance);
@@ -1520,6 +1669,17 @@
         tg?.HapticFeedback?.notificationOccurred('error');
         walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
         refreshWalletPayPanel();
+      } else if (res && typeof res.error === 'string' && res.error.indexOf('coupon_') === 0) {
+        // The coupon became invalid between "اعمال" and actually paying
+        // (e.g. someone else used up the last slot) — drop it and let the
+        // user retry at the real (non-discounted) price instead of just
+        // failing silently.
+        appliedCoupon = null;
+        couponBoxEl.classList.remove('applied');
+        showCouponMsg(COUPON_ERROR_TEXT[res.error.slice('coupon_'.length)] || 'کد تخفیف دیگه معتبر نیست.', true);
+        updatePayAmount();
+        tg?.HapticFeedback?.notificationOccurred('error');
+        walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
       } else {
         throw new Error((res && res.error) || 'unknown');
       }
@@ -1530,6 +1690,84 @@
       refreshWalletPayPanel();
     }
   });
+
+  /* ---------- ⭐ Telegram Stars payment ----------
+     Flow: ask the server for an invoice link (server recomputes the
+     Toman total + coupon discount and converts to Stars — see
+     handleCreateStarsInvoiceQuery_), hand that link to Telegram's own
+     tg.openInvoice() so the native Stars payment sheet opens (which shows
+     the exact ⭐ amount itself, no need to compute/display it here), then
+     just react to the outcome. The actual purchase confirmation/admin
+     notify happens server-side once Telegram calls our webhook with
+     successful_payment — this handler only reflects the outcome to the
+     buyer, it doesn't do the confirming itself. */
+  const starsPayConfirmBtn = document.getElementById('starsPayConfirmBtn');
+  const starsPayStatusEl = document.getElementById('starsPayStatus');
+  starsPayConfirmBtn?.addEventListener('click', async () => {
+    if (!selectedPlan) {
+      tg?.showAlert ? tg.showAlert('ابتدا یک پلن انتخاب کنید.') : alert('ابتدا یک پلن انتخاب کنید.');
+      return;
+    }
+    if (!tg?.openInvoice) {
+      tg?.showAlert
+        ? tg.showAlert('پرداخت با استارز نیاز به نسخه‌ی جدیدتر تلگرام داره — لطفاً تلگرام رو آپدیت کنید یا از روش دیگه‌ای پرداخت کنید.')
+        : alert('پرداخت با استارز روی این نسخه‌ی تلگرام پشتیبانی نمی‌شه.');
+      return;
+    }
+    starsPayConfirmBtn.disabled = true;
+    starsPayConfirmBtn.textContent = 'در حال آماده‌سازی…';
+    starsPayStatusEl.classList.remove('show');
+    try {
+      const invoiceNumber = generateInvoiceNumber();
+      const params = new URLSearchParams({
+        action: 'create_stars_invoice',
+        initData,
+        planId: selectedPlan.id,
+        planLabel: selectedPlan.label,
+        extraVolumeGB: String(extraVolume),
+        extraDays: String(extraDays),
+        invoiceNumber
+      });
+      if (appliedCoupon) params.set('couponCode', appliedCoupon.code);
+      const res = await fetch(`${VISIT_LOG_URL}?${params.toString()}`).then((r) => r.json());
+      if (!res || !res.ok) {
+        const errText = res && res.error === 'stars_not_configured'
+          ? 'پرداخت با استارز فعلاً در دسترس نیست، لطفاً از روش دیگه‌ای استفاده کنید.'
+          : (res && typeof res.error === 'string' && res.error.indexOf('coupon_') === 0)
+            ? (COUPON_ERROR_TEXT[res.error.slice('coupon_'.length)] || 'کد تخفیف معتبر نیست.')
+            : 'ساخت فاکتور پرداخت ممکن نشد، دوباره تلاش کنید.';
+        starsPayStatusEl.textContent = '❌ ' + errText;
+        starsPayStatusEl.classList.add('show');
+        tg?.HapticFeedback?.notificationOccurred('error');
+        return;
+      }
+      starsPayConfirmBtn.textContent = 'در انتظار تأیید پرداخت…';
+      tg.openInvoice(res.invoiceLink, (status) => {
+        starsPayConfirmBtn.disabled = false;
+        starsPayConfirmBtn.textContent = '⭐️ پرداخت با استارز';
+        if (status === 'paid') {
+          tg?.HapticFeedback?.notificationOccurred('success');
+          starsPayStatusEl.textContent = '✅ پرداخت شما با استارز انجام شد! پشتیبانی به‌زودی کانفیگ رو براتون ارسال می‌کنه.';
+          starsPayStatusEl.classList.add('show');
+          fireConfetti();
+        } else if (status === 'cancelled') {
+          starsPayStatusEl.textContent = '';
+          starsPayStatusEl.classList.remove('show');
+        } else {
+          tg?.HapticFeedback?.notificationOccurred('error');
+          starsPayStatusEl.textContent = '❌ پرداخت انجام نشد. دوباره تلاش کنید یا از روش دیگه‌ای استفاده کنید.';
+          starsPayStatusEl.classList.add('show');
+        }
+      });
+    } catch (err) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      starsPayStatusEl.textContent = '❌ ارتباط برقرار نشد، دوباره تلاش کنید.';
+      starsPayStatusEl.classList.add('show');
+      starsPayConfirmBtn.disabled = false;
+      starsPayConfirmBtn.textContent = '⭐️ پرداخت با استارز';
+    }
+  });
+
   document.querySelectorAll('.card-copy-btn').forEach((btn) => {
     const originalLabel = btn.textContent;
     btn.addEventListener('click', () => {
@@ -1795,6 +2033,13 @@
     try {
       const imageBase64 = await fileToBase64(receiptFile);
       const invoiceNumber = generateInvoiceNumber();
+      // price/totalPrice reflect the coupon-discounted amount (matches what
+      // the buyer actually sees in "مبلغ قابل پرداخت" above and — since a
+      // card receipt is manually reviewed, not auto-debited — what they
+      // should be paying via card-to-card). couponCode is re-validated
+      // server-side too (see handlePurchaseSubmission_), it's not trusted
+      // blindly for anything beyond display + usage-count bookkeeping.
+      const discountedTotal = finalSelectedTotal();
       await fetch(PURCHASE_LOG_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -1802,11 +2047,12 @@
         body: JSON.stringify({
           invoiceNumber,
           plan: selectedPlan?.label || '',
-          price: selectedPlan?.price || '',
+          price: discountedTotal || '',
           extraVolumeGB: extraVolume,
           extraDays: extraDays,
           addonPrice: addonTotalPrice(),
-          totalPrice: (selectedPlan?.price || 0) + addonTotalPrice(),
+          totalPrice: discountedTotal,
+          couponCode: appliedCoupon?.code || '',
           userId: user?.id || '',
           username: user?.username || '',
           firstName: user?.first_name || '',

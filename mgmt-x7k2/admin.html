@@ -93,6 +93,7 @@
   .pill.green{background:rgba(58,143,79,.18); color:#5fcb7a;}
   .pill.red{background:rgba(192,57,43,.18); color:#e8695f;}
   .pill.gray{background:rgba(154,161,172,.15); color:var(--hint);}
+  .pill.yellow{background:rgba(255,211,0,.18); color:var(--accent);}
   .empty-note{padding:20px; text-align:center; color:var(--hint); font-size:12.5px;}
 
   .filter-row{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
@@ -195,6 +196,7 @@
   <div class="tab-panel" id="tabPurchases">
     <div class="filter-row">
       <input class="filter-input" id="purchaseFilter" placeholder="جست‌وجو بر اساس شناسه کاربر، پلن یا شماره فاکتور…">
+      <button class="form-btn" id="purchasesExportBtn" type="button">⬇️ دانلود CSV</button>
     </div>
     <div class="table-wrap"><table id="purchasesTable">
       <thead><tr><th>#</th><th>کاربر</th><th>پلن</th><th>مبلغ</th><th>حجم/روز اضافه</th><th>فاکتور</th><th>زمان</th></tr></thead>
@@ -206,6 +208,7 @@
   <div class="tab-panel" id="tabWallet">
     <div class="filter-row">
       <input class="filter-input" id="ledgerFilter" placeholder="جست‌وجو بر اساس شناسه کاربر یا یادداشت…">
+      <button class="form-btn" id="ledgerExportBtn" type="button">⬇️ دانلود CSV</button>
     </div>
     <div class="table-wrap"><table id="ledgerTable">
       <thead><tr><th>کاربر</th><th>نوع</th><th>مبلغ</th><th>یادداشت</th><th>فاکتور</th><th>زمان</th></tr></thead>
@@ -225,6 +228,7 @@
         </select>
         <input id="couponValueInput" type="number" placeholder="مقدار (٪ یا تومان)">
         <input id="couponMaxUsesInput" type="number" placeholder="سقف استفاده (۰=نامحدود)">
+        <input id="couponStartsInput" type="date" placeholder="تاریخ شروع (اختیاری)" title="خالی = همین الان فعال">
         <input id="couponExpiresInput" type="date" placeholder="تاریخ انقضا">
         <button class="form-btn" id="couponCreateBtn" type="button">➕ ساخت کد</button>
       </div>
@@ -233,7 +237,7 @@
     </div>
     <p class="section-title">کدهای موجود</p>
     <div class="table-wrap"><table id="couponsTable">
-      <thead><tr><th>کد</th><th>نوع</th><th>مقدار</th><th>استفاده‌شده</th><th>سقف</th><th>انقضا</th><th>وضعیت</th><th></th></tr></thead>
+      <thead><tr><th>کد</th><th>نوع</th><th>مقدار</th><th>استفاده‌شده</th><th>سقف</th><th>شروع</th><th>انقضا</th><th>وضعیت</th><th></th></tr></thead>
       <tbody></tbody>
     </table></div>
   </div>
@@ -242,6 +246,7 @@
   <div class="tab-panel" id="tabMessages">
     <div class="filter-row">
       <input class="filter-input" id="messageFilter" placeholder="فیلتر بر اساس شناسه کاربر…">
+      <button class="form-btn" id="messagesExportBtn" type="button">⬇️ دانلود CSV</button>
     </div>
     <div class="table-wrap"><table id="messagesTable">
       <thead><tr><th>کاربر</th><th>جهت</th><th>نوع</th><th class="wrap">متن</th><th>زمان</th></tr></thead>
@@ -417,6 +422,52 @@
       </tr>`).join('');
   }
 
+  /* ---------- CSV export ----------
+     Exports whatever is CURRENTLY on screen (i.e. respects the active
+     search filter, not the full unfiltered cache) — each render/apply-
+     filter pair below stashes its last-filtered array into
+     lastFiltered.<name> for exactly this purpose. csvCell_ escapes per
+     RFC 4180 (quote any value containing a comma/quote/newline, double up
+     internal quotes). A UTF-8 BOM is prepended so Excel (incl. Persian
+     text) opens it correctly instead of guessing the wrong encoding. */
+  const lastFiltered = { purchases: [], ledger: [], messages: [] };
+  function csvCell_(v) {
+    const s = v === null || v === undefined ? '' : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function downloadCsv_(filename, headers, rows, rowToArray) {
+    if (!rows.length) { alert('چیزی برای دانلود نیست.'); return; }
+    const lines = [headers.map(csvCell_).join(',')]
+      .concat(rows.map((r) => rowToArray(r).map(csvCell_).join(',')));
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById('purchasesExportBtn').addEventListener('click', () => {
+    downloadCsv_('mbs-purchases.csv',
+      ['ترتیب', 'کاربر', 'پلن', 'مبلغ', 'حجم اضافه (گیگ)', 'روز اضافه', 'فاکتور', 'زمان'],
+      lastFiltered.purchases,
+      (r) => [r.orderIndex, r.userId, r.planLabel, r.price, r.extraVolumeGB || 0, r.extraDays || 0, r.invoiceNumber, r.timestamp]);
+  });
+  document.getElementById('ledgerExportBtn').addEventListener('click', () => {
+    downloadCsv_('mbs-wallet-ledger.csv',
+      ['کاربر', 'نوع', 'مبلغ', 'یادداشت', 'فاکتور', 'زمان'],
+      lastFiltered.ledger,
+      (r) => [r.userId, r.type, r.amount, r.note, r.invoiceNumber, r.timestamp]);
+  });
+  document.getElementById('messagesExportBtn').addEventListener('click', () => {
+    downloadCsv_('mbs-messages.csv',
+      ['کاربر', 'جهت', 'نوع', 'متن', 'زمان'],
+      lastFiltered.messages,
+      (r) => [r.user_id, r.direction, r.message_type, r.content, r.created_at]);
+  });
+
   let allPurchasesCache = [];
   function renderPurchases(rows) {
     allPurchasesCache = rows;
@@ -429,6 +480,7 @@
       String(r.planLabel).toLowerCase().includes(q) ||
       String(r.invoiceNumber).toLowerCase().includes(q)
     ) : allPurchasesCache;
+    lastFiltered.purchases = filtered;
     const tbody = document.querySelector('#purchasesTable tbody');
     if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-note">چیزی پیدا نشد.</td></tr>`; return; }
     tbody.innerHTML = filtered.map((r) => `
@@ -455,6 +507,7 @@
     const filtered = q ? allLedgerCache.filter((r) =>
       String(r.userId).toLowerCase().includes(q) || String(r.note).toLowerCase().includes(q)
     ) : allLedgerCache;
+    lastFiltered.ledger = filtered;
     const tbody = document.querySelector('#ledgerTable tbody');
     if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty-note">چیزی پیدا نشد.</td></tr>`; return; }
     tbody.innerHTML = filtered.map((r) => `
@@ -486,18 +539,29 @@
 
   function renderCoupons(rows) {
     const tbody = document.querySelector('#couponsTable tbody');
-    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty-note">هنوز کد تخفیفی ساخته نشده.</td></tr>`; return; }
-    tbody.innerHTML = rows.map((r) => `
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-note">هنوز کد تخفیفی ساخته نشده.</td></tr>`; return; }
+    // A coupon with a future startsAt is "فعال" (active=true) in the sheet
+    // but not actually usable yet — validateCoupon_ rejects it with
+    // not_started. Flag that distinctly so it doesn't read as a live,
+    // working code before its scheduled start.
+    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
+    tbody.innerHTML = rows.map((r) => {
+      const notStartedYet = r.startsAt && String(r.startsAt) > todayStr;
+      const statusLabel = !r.active ? 'غیرفعال' : notStartedYet ? 'زمان‌بندی‌شده' : 'فعال';
+      const statusClass = !r.active ? 'red' : notStartedYet ? 'yellow' : 'green';
+      return `
       <tr>
         <td>${esc(r.code)}</td>
         <td>${r.type === 'percent' ? 'درصدی' : 'مبلغ ثابت'}</td>
         <td>${r.type === 'percent' ? esc(r.value) + '٪' : toman(r.value)}</td>
         <td>${esc(r.usedCount)}</td>
         <td>${Number(r.maxUses) > 0 ? esc(r.maxUses) : 'نامحدود'}</td>
+        <td>${esc(r.startsAt) || '—'}</td>
         <td>${esc(r.expiresAt) || '—'}</td>
-        <td><span class="pill ${r.active ? 'green' : 'red'}">${r.active ? 'فعال' : 'غیرفعال'}</span></td>
+        <td><span class="pill ${statusClass}">${statusLabel}</span></td>
         <td><button class="icon-btn" data-toggle-coupon="${esc(r.code)}" type="button">${r.active ? 'غیرفعال کن' : 'فعال کن'}</button></td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
     tbody.querySelectorAll('[data-toggle-coupon]').forEach((btn) => {
       btn.addEventListener('click', () => toggleCoupon(btn.dataset.toggleCoupon));
     });
@@ -516,13 +580,14 @@
     const type = document.getElementById('couponTypeInput').value;
     const value = document.getElementById('couponValueInput').value;
     const maxUses = document.getElementById('couponMaxUsesInput').value || '0';
+    const startsAt = document.getElementById('couponStartsInput').value || '';
     const expiresAt = document.getElementById('couponExpiresInput').value || '';
     const note = document.getElementById('couponNoteInput').value || '';
     const msgEl = document.getElementById('couponFormMsg');
     if (!code || !value) {
       msgEl.textContent = 'کد و مقدار الزامیه.'; msgEl.className = 'form-msg show error'; return;
     }
-    const params = new URLSearchParams({ action: 'admin_coupon_write', token, mode: 'create', code, type, value, maxUses, expiresAt, note });
+    const params = new URLSearchParams({ action: 'admin_coupon_write', token, mode: 'create', code, type, value, maxUses, startsAt, expiresAt, note });
     try {
       const res = await fetch(`${API_URL}?${params.toString()}`).then((r) => r.json());
       if (res && res.ok) {
@@ -530,6 +595,7 @@
         document.getElementById('couponCodeInput').value = '';
         document.getElementById('couponValueInput').value = '';
         document.getElementById('couponMaxUsesInput').value = '';
+        document.getElementById('couponStartsInput').value = '';
         document.getElementById('couponExpiresInput').value = '';
         document.getElementById('couponNoteInput').value = '';
         loadData();
@@ -551,6 +617,7 @@
   function applyMessageFilter() {
     const q = (document.getElementById('messageFilter').value || '').trim();
     const filtered = q ? allMessagesCache.filter((r) => String(r.user_id) === q) : allMessagesCache;
+    lastFiltered.messages = filtered;
     const tbody = document.querySelector('#messagesTable tbody');
     if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-note">پیامی پیدا نشد.</td></tr>`; return; }
     tbody.innerHTML = filtered.slice(0, 300).map((r) => `

@@ -989,6 +989,12 @@
       const invoiceHtml = p.invoiceNumber
         ? `<p class="wtx-invoice">شماره فاکتور: ${escapeHtml_(p.invoiceNumber)}</p>`
         : '';
+      // expiresAt/durationDays only exist on purchases logged after the
+      // schema extension (see PURCHASES_HEADERS/logPurchase_ in Code.gs) —
+      // older rows just won't show this line, which is fine.
+      const expiryHtml = p.expiresAt
+        ? `<p class="wtx-invoice">تاریخ انقضا: ${escapeHtml_(p.expiresAt)}</p>`
+        : '';
       return `
         <div class="subs-card">
           <div class="subs-card-top">
@@ -1000,6 +1006,7 @@
           <p class="subs-price-line">مبلغ پرداختی: <b>${Number(p.price || 0).toLocaleString('fa-IR')}</b> تومان</p>
           ${configHtml}
           ${invoiceHtml}
+          ${expiryHtml}
         </div>`;
     }).join('');
 
@@ -1059,7 +1066,7 @@
      by the admin AND every purchase paid directly from the wallet — the
      same Wallet Ledger sheet mutateWallet_ writes to, with the admin-only
      adminId column stripped out before it ever reaches the client. */
-  const WTX_TYPE_LABELS = { topup: '💰 شارژ', purchase: '🛒 خرید' };
+  const WTX_TYPE_LABELS = { topup: '💰 شارژ', purchase: '🛒 خرید', admin_adjust: '⚙️ تنظیم ادمین', referral_credit: '🎁 اعتبار دعوت' };
   function renderWalletHistory(history) {
     if (!history || !history.length) {
       subsModalBody.innerHTML =
@@ -1091,7 +1098,10 @@
     // more useful for a transaction history list.
     const rows = history.slice().reverse();
     subsModalBody.innerHTML = summaryHtml + rows.map((tx) => {
-      const isCredit = tx.type === 'topup';
+      // admin_adjust can go either way (+N or −N), so its sign/credit
+      // styling comes from the actual amount rather than the fixed
+      // per-type rule that works for topup (always +) / purchase (always −).
+      const isCredit = tx.type === 'topup' || tx.type === 'referral_credit' || (tx.type === 'admin_adjust' && Number(tx.amount) > 0);
       const sign = isCredit ? '+' : '−';
       const typeLabel = WTX_TYPE_LABELS[tx.type] || tx.type;
       const invoiceHtml = tx.invoiceNumber

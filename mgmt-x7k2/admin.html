@@ -164,6 +164,7 @@
     <button class="tab-btn" data-tab="coupons" type="button">🎟 کدهای تخفیف</button>
     <button class="tab-btn" data-tab="messages" type="button">💬 پیام‌ها</button>
     <button class="tab-btn" data-tab="broadcast" type="button">📢 پیام همگانی</button>
+    <button class="tab-btn" data-tab="adminPerf" type="button">🏅 عملکرد ادمین‌ها</button>
   </div>
 
   <!-- STATS -->
@@ -177,6 +178,7 @@
       <div class="stat-card"><p class="stat-label">مانده کیف پول‌ها (بدهی)</p><p class="stat-value" id="statWalletOutstanding">—</p></div>
       <div class="stat-card"><p class="stat-label">تعداد کل خریدها</p><p class="stat-value" id="statPurchaseCount">—</p></div>
       <div class="stat-card"><p class="stat-label">در انتظار پیگیری</p><p class="stat-value" id="statPendingCount">—</p></div>
+      <div class="stat-card"><p class="stat-label">میانگین رضایت مشتری</p><p class="stat-value" id="statRatingAvg">—</p></div>
     </div>
   </div>
 
@@ -256,6 +258,15 @@
       <button class="form-btn" id="broadcastSendBtn" type="button">📢 ارسال به همه</button>
       <p id="broadcastResult"></p>
     </div>
+  </div>
+
+  <!-- ADMIN PERFORMANCE -->
+  <div class="tab-panel" id="tabAdminPerf">
+    <p class="section-title">عملکرد هر ادمین (بر اساس شناسه عددی تلگرام)</p>
+    <div class="table-wrap"><table id="adminPerfTable">
+      <thead><tr><th>شناسه ادمین</th><th>تحویل‌شده</th><th>درآمد تحویل‌شده</th><th>شارژهای تأییدشده</th><th>مبلغ شارژهای تأییدشده</th><th>تنظیمات دستی</th><th>خالص تنظیمات دستی</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
   </div>
 </div>
 
@@ -349,7 +360,9 @@
       const labels = {
         supabase_not_configured: 'لاگ پیام‌ها/در انتظار: Supabase تنظیم نشده',
         supabase_error: 'خطا در دریافت لاگ پیام‌ها از Supabase',
-        supabase_unavailable: 'ارتباط با Supabase برقرار نشد'
+        supabase_unavailable: 'ارتباط با Supabase برقرار نشد',
+        ratings_error: 'خطا در دریافت امتیازهای رضایت از Supabase',
+        ratings_unavailable: 'ارتباط با جدول امتیازهای رضایت برقرار نشد (جدول ratings را در Supabase بسازید)'
       };
       const shown = res.warnings.map((w) => {
         const key = w.split(':')[0];
@@ -376,12 +389,17 @@
     document.getElementById('statWalletOutstanding').textContent = toman(res.walletOutstanding);
     document.getElementById('statPurchaseCount').textContent = (res.purchasesTotalCount || 0).toLocaleString('fa-IR');
     document.getElementById('statPendingCount').textContent = ((res.pendingInvoices || []).length).toLocaleString('fa-IR');
+    const ratings = res.ratings || { average: null, count: 0 };
+    document.getElementById('statRatingAvg').textContent = ratings.average != null
+      ? `⭐ ${ratings.average.toLocaleString('fa-IR')} (${ratings.count.toLocaleString('fa-IR')} رأی)`
+      : 'بدون داده';
     document.getElementById('broadcastUserCountNote').textContent = 'تعداد کاربران: ' + (res.userCount || 0).toLocaleString('fa-IR');
 
     renderPending(res.pendingInvoices || []);
     renderPurchases(res.purchases || []);
     renderLedger(res.walletLedger || []);
     renderCoupons(res.coupons || []);
+    renderAdminPerf(res.adminPerformance || []);
     renderMessages(res.messages || []);
   }
 
@@ -427,7 +445,7 @@
   document.getElementById('purchaseFilter').addEventListener('input', applyPurchaseFilter);
 
   let allLedgerCache = [];
-  const LEDGER_TYPE_LABEL = { topup: '💰 شارژ', purchase: '🛒 خرید' };
+  const LEDGER_TYPE_LABEL = { topup: '💰 شارژ', purchase: '🛒 خرید', admin_adjust: '⚙️ تنظیم ادمین', referral_credit: '🎁 اعتبار دعوت' };
   function renderLedger(rows) {
     allLedgerCache = rows;
     applyLedgerFilter();
@@ -450,6 +468,21 @@
       </tr>`).join('');
   }
   document.getElementById('ledgerFilter').addEventListener('input', applyLedgerFilter);
+
+  function renderAdminPerf(rows) {
+    const tbody = document.querySelector('#adminPerfTable tbody');
+    if (!rows || !rows.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-note">هنوز داده‌ای ثبت نشده (adminId فقط وقتی ثبت می‌شه که یک ادمین به یک رسید/درخواست پاسخ بده).</td></tr>`; return; }
+    tbody.innerHTML = rows.map((r) => `
+      <tr>
+        <td>${esc(r.adminId)}</td>
+        <td>${esc(r.purchaseCount)}</td>
+        <td>${toman(r.purchaseRevenue)}</td>
+        <td>${esc(r.topupApprovals)}</td>
+        <td>${toman(r.topupApprovedAmount)}</td>
+        <td>${esc(r.adjustCount)}</td>
+        <td>${r.adjustNetAmount >= 0 ? '+' : ''}${toman(r.adjustNetAmount)}</td>
+      </tr>`).join('');
+  }
 
   function renderCoupons(rows) {
     const tbody = document.querySelector('#couponsTable tbody');

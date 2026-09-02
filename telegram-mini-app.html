@@ -299,6 +299,11 @@
     white-space:pre-line;
   }
   .invite-count.show{display:block;}
+  .invite-progress-wrap{display:none; margin:2px 0 14px;}
+  .invite-progress-wrap.show{display:block;}
+  .invite-progress-track{width:100%; height:10px; background:var(--line); border-radius:6px; overflow:hidden;}
+  .invite-progress-fill{height:100%; width:0%; background:var(--accent); border-radius:6px; transition:width .5s ease;}
+  .invite-progress-label{font-size:11.5px; color:var(--hint); margin:6px 0 0;}
   .invite-share-btn{
     width:100%; padding:12px; border-radius:14px; border:none; background:var(--accent); color:var(--accent-text);
     font-family:inherit; font-size:14px; font-weight:900; cursor:pointer;
@@ -454,6 +459,10 @@
     font-size:18px; display:flex; align-items:center; justify-content:center;
     cursor:pointer; padding:0;
   }
+  #langToggleBtn{
+    left:auto; right:0; width:auto; min-width:40px; height:36px; border-radius:18px;
+    font-size:12px; font-weight:800; gap:4px; padding:0 10px;
+  }
   .profile-menu{
     position:absolute; top:calc(100% + 8px); left:0; z-index:30; min-width:200px;
     list-style:none; margin:0; padding:8px; border-radius:14px;
@@ -518,31 +527,32 @@
 <div class="wrap">
   <div class="top-bar">
     <button class="profile-btn" id="profileBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="پروفایل">👤</button>
+    <button class="profile-btn" id="langToggleBtn" type="button" aria-label="Language / زبان" title="Language / زبان">🌐 EN</button>
     <ul class="profile-menu" id="profileMenu" role="menu">
-      <li class="profile-menu-item" id="menuWallet" role="menuitem"><span class="pmi-icon">👛</span> کیف پول من</li>
-      <li class="profile-menu-item" id="menuMySubs" role="menuitem"><span class="pmi-icon">📦</span> اشتراک‌های من</li>
-      <li class="profile-menu-item" id="menuInvite" role="menuitem"><span class="pmi-icon">🔗</span> لینک دعوت</li>
-      <li class="profile-menu-item" id="menuTour" role="menuitem"><span class="pmi-icon">✨</span> تور آشنایی با اپ</li>
-      <li class="profile-menu-item" id="menuCollab" role="menuitem"><span class="pmi-icon">🤝</span> همکاری با MBS <span class="pmi-soon">به‌زودی</span></li>
+      <li class="profile-menu-item" id="menuWallet" role="menuitem"><span class="pmi-icon">👛</span> <span data-i18n="menuWallet">کیف پول من</span></li>
+      <li class="profile-menu-item" id="menuMySubs" role="menuitem"><span class="pmi-icon">📦</span> <span data-i18n="menuMySubs">اشتراک‌های من</span></li>
+      <li class="profile-menu-item" id="menuInvite" role="menuitem"><span class="pmi-icon">🔗</span> <span data-i18n="menuInvite">لینک دعوت</span></li>
+      <li class="profile-menu-item" id="menuTour" role="menuitem"><span class="pmi-icon">✨</span> <span data-i18n="menuTour">تور آشنایی با اپ</span></li>
+      <li class="profile-menu-item" id="menuCollab" role="menuitem"><span class="pmi-icon">🤝</span> <span data-i18n="menuCollab">همکاری با MBS</span> <span class="pmi-soon" data-i18n="soon">به‌زودی</span></li>
     </ul>
   </div>
   <p class="eyebrow" id="greeting">پلن‌های اینترنت</p>
-  <p class="brand-welcome">به <span class="brand-name">MBS Online</span> خوش آمدید</p>
+  <p class="brand-welcome" id="brandWelcome">به <span class="brand-name">MBS Online</span> خوش آمدید</p>
   <div class="summary">
     <div class="summary-part">
       <div class="num id-value" id="userIdText">—</div>
-      <div class="lbl">شناسه شما (ID)</div>
+      <div class="lbl" data-i18n="yourIdLabel">شناسه شما (ID)</div>
     </div>
     <div class="summary-divider"></div>
     <div class="summary-part">
       <div class="num" id="walletBalanceText">👛 —</div>
-      <div class="lbl" id="walletBalanceLbl">در حال دریافت…</div>
+      <div class="lbl" id="walletBalanceLbl" data-i18n="loadingLabel">در حال دریافت…</div>
     </div>
   </div>
   <!-- Location marquee: now placed directly above the plan picker,
        auto-scrolls continuously (infinite loop), no tap needed. -->
   <div class="loc-section">
-    <p class="section-label">لوکیشن های موجود سرورها</p>
+    <p class="section-label" data-i18n="locSectionLabel">لوکیشن های موجود سرورها</p>
     <div class="loc-marquee" id="locMarquee">
       <div class="loc-marquee-track" id="locTrack"></div>
     </div>
@@ -552,7 +562,7 @@
     <button class="plan-trigger" id="planTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
       <span class="plan-trigger-left">
         <span class="plan-trigger-icon" id="triggerIcon"></span>
-        <span id="triggerText" class="placeholder">انتخاب پلن پایه مولتی لوکیشن</span>
+        <span id="triggerText" class="placeholder" data-i18n="planTriggerPlaceholder">انتخاب پلن پایه مولتی لوکیشن</span>
       </span>
       <span class="chevron" id="chevronIcon">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -563,19 +573,19 @@
   <div class="selected-summary" id="selectedSummary"></div>
   <!-- Add-ons: extra volume / extra days steppers (volume-control style) -->
   <div class="addon-section" id="addonSection">
-    <p class="addon-title">🛠️ ساخت پلن دلخواه</p>
-    <p class="addon-subtitle">حجم و روز موردنظرتون رو انتخاب کنید تا پلن دلخواه شما ساخته بشه.</p>
+    <p class="addon-title" data-i18n="addonTitle">🛠️ ساخت پلن دلخواه</p>
+    <p class="addon-subtitle" data-i18n="addonSubtitle">حجم و روز موردنظرتون رو انتخاب کنید تا پلن دلخواه شما ساخته بشه.</p>
     <div class="addon-row">
       <div class="addon-label">
         <span class="addon-icon">📦</span>
         <div>
-          <div class="addon-name">حجم اضافه</div>
-          <div class="addon-sub">۱۰ تا ۳۰۰ گیگ، هر بار ۵ گیگ</div>
+          <div class="addon-name" data-i18n="addonVolName">حجم اضافه</div>
+          <div class="addon-sub" data-i18n="addonVolSub">۱۰ تا ۳۰۰ گیگ، هر بار ۵ گیگ</div>
         </div>
       </div>
       <div class="addon-stepper">
         <button class="addon-btn" id="volMinus" type="button" aria-label="کم کردن حجم">−</button>
-        <span class="addon-value off" id="volValue">غیرفعال</span>
+        <span class="addon-value off" id="volValue" data-i18n="addonOff">غیرفعال</span>
         <button class="addon-btn" id="volPlus" type="button" aria-label="اضافه کردن حجم">+</button>
       </div>
     </div>
@@ -583,13 +593,13 @@
       <div class="addon-label">
         <span class="addon-icon">📅</span>
         <div>
-          <div class="addon-name">روز اضافه</div>
-          <div class="addon-sub">۵ تا ۳۶۵ روز، هر بار ۵ روز</div>
+          <div class="addon-name" data-i18n="addonDayName">روز اضافه</div>
+          <div class="addon-sub" data-i18n="addonDaySub">۵ تا ۳۶۵ روز، هر بار ۵ روز</div>
         </div>
       </div>
       <div class="addon-stepper">
         <button class="addon-btn" id="dayMinus" type="button" aria-label="کم کردن روز">−</button>
-        <span class="addon-value off" id="dayValue">غیرفعال</span>
+        <span class="addon-value off" id="dayValue" data-i18n="addonOff">غیرفعال</span>
         <button class="addon-btn" id="dayPlus" type="button" aria-label="اضافه کردن روز">+</button>
       </div>
     </div>
@@ -597,11 +607,11 @@
   </div>
   <!-- Payment -->
   <div class="pay-section" id="paySection">
-    <p class="pay-title">💳 پرداخت</p>
+    <p class="pay-title" data-i18n="payTitle">💳 پرداخت</p>
     <div class="coupon-box" id="couponBox">
       <div class="coupon-row" id="couponInputRow">
-        <input type="text" class="coupon-input" id="couponInput" placeholder="کد تخفیف (اختیاری)" autocapitalize="characters">
-        <button class="coupon-apply-btn" id="couponApplyBtn" type="button">اعمال</button>
+        <input type="text" class="coupon-input" id="couponInput" data-i18n-ph="couponPlaceholder" placeholder="کد تخفیف (اختیاری)" autocapitalize="characters">
+        <button class="coupon-apply-btn" id="couponApplyBtn" type="button" data-i18n="couponApplyBtn">اعمال</button>
       </div>
       <div class="coupon-applied-row" id="couponAppliedRow">
         <span id="couponAppliedText"></span>
@@ -793,6 +803,12 @@
     <p class="invite-title">🎁 دعوت‌های من</p>
     <p class="invite-desc">با دعوت دوستانتون به MBS Online، به‌ازای هر ۶ دعوت موفق، یک اشتراک ۵ گیگ ۳۰ روزه به‌صورت هدیه براتون فعال می‌شه!</p>
     <p class="invite-count" id="inviteCount"></p>
+    <div class="invite-progress-wrap" id="inviteProgressWrap">
+      <div class="invite-progress-track">
+        <div class="invite-progress-fill" id="inviteProgressFill"></div>
+      </div>
+      <p class="invite-progress-label" id="inviteProgressLabel"></p>
+    </div>
     <button class="invite-share-btn" id="inviteShareBtn" type="button">🔗 اشتراک‌گذاری لینک دعوت من</button>
   </div>
   <p class="footer-note">MBS Online — نسخه 2.2</p>
@@ -837,12 +853,91 @@
 </div>
 <canvas id="confettiCanvas"></canvas>
 <script>
+  /* ---------- Language toggle (فارسی / English) ----------
+     Scope note: this switches the PRIMARY screen — header, plan names,
+     add-on section, payment section chrome, profile menu, footer — not
+     every deep alert/confirmation/error string in the app (those stay
+     Persian for now). Persisted via Telegram CloudStorage when available
+     (syncs for that Telegram account across devices), falling back to
+     localStorage for testing outside Telegram. Defaults to Persian. */
+  const STRINGS = {
+    fa: {
+      menuWallet: 'کیف پول من', menuMySubs: 'اشتراک‌های من', menuInvite: 'لینک دعوت',
+      menuTour: 'تور آشنایی با اپ', menuCollab: 'همکاری با MBS', soon: 'به‌زودی',
+      eyebrow: 'پلن‌های اینترنت', yourIdLabel: 'شناسه شما (ID)', loadingLabel: 'در حال دریافت…',
+      locSectionLabel: 'لوکیشن های موجود سرورها', planTriggerPlaceholder: 'انتخاب پلن پایه مولتی لوکیشن',
+      addonTitle: '🛠️ ساخت پلن دلخواه',
+      addonSubtitle: 'حجم و روز موردنظرتون رو انتخاب کنید تا پلن دلخواه شما ساخته بشه.',
+      addonVolName: 'حجم اضافه', addonVolSub: '۱۰ تا ۳۰۰ گیگ، هر بار ۵ گیگ',
+      addonDayName: 'روز اضافه', addonDaySub: '۵ تا ۳۶۵ روز، هر بار ۵ روز',
+      addonOff: 'غیرفعال', gbUnit: 'گیگ', dayUnit: 'روز', addonCostLabel: 'هزینه افزودنی‌ها',
+      payTitle: '💳 پرداخت', couponPlaceholder: 'کد تخفیف (اختیاری)', couponApplyBtn: 'اعمال',
+      customPlanSummary: 'پلن دلخواه شما — حجم و روز موردنظرتون رو در بخش پایین انتخاب کنید.',
+      selectedPlanPrefix: 'پلن انتخابی شما:', footerVersion: 'MBS Online — نسخه 2.2',
+      brandWelcomeHtml: 'به <span class="brand-name">MBS Online</span> خوش آمدید'
+    },
+    en: {
+      menuWallet: 'My Wallet', menuMySubs: 'My Subscriptions', menuInvite: 'Invite Link',
+      menuTour: 'App Tour', menuCollab: 'Partner with MBS', soon: 'Soon',
+      eyebrow: 'Internet Plans', yourIdLabel: 'Your ID', loadingLabel: 'Loading…',
+      locSectionLabel: 'Available Server Locations', planTriggerPlaceholder: 'Select a multi-location base plan',
+      addonTitle: '🛠️ Build a Custom Plan',
+      addonSubtitle: 'Choose the extra volume and days to build your custom plan.',
+      addonVolName: 'Extra Volume', addonVolSub: '10 to 300 GB, 5 GB steps',
+      addonDayName: 'Extra Days', addonDaySub: '5 to 365 days, 5-day steps',
+      addonOff: 'Off', gbUnit: 'GB', dayUnit: 'days', addonCostLabel: 'Add-on cost',
+      payTitle: '💳 Payment', couponPlaceholder: 'Discount code (optional)', couponApplyBtn: 'Apply',
+      customPlanSummary: 'Your custom plan — choose the volume and days below.',
+      selectedPlanPrefix: 'Selected plan:', footerVersion: 'MBS Online — v2.2',
+      brandWelcomeHtml: 'Welcome to <span class="brand-name">MBS Online</span>'
+    }
+  };
+  let currentLang = 'fa';
+  function t(key) {
+    return (STRINGS[currentLang] && STRINGS[currentLang][key]) || STRINGS.fa[key] || key;
+  }
+  function renderGreeting() {
+    if (user?.first_name) {
+      greetingEl.textContent = currentLang === 'en' ? `Hi ${user.first_name} 👋` : `سلام ${user.first_name} 👋`;
+    } else {
+      greetingEl.textContent = t('eyebrow');
+    }
+  }
+  // Declared/applied in full further down (after plans/renderPlanList/
+  // addon UI functions exist) — see applyLanguage below.
+  function applyLanguage(lang) {
+    currentLang = (lang === 'en') ? 'en' : 'fa';
+    document.documentElement.lang = currentLang;
+    if (langToggleBtn) langToggleBtn.textContent = currentLang === 'en' ? '🌐 FA' : '🌐 EN';
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))); });
+    const brandWelcomeEl = document.getElementById('brandWelcome');
+    if (brandWelcomeEl) brandWelcomeEl.innerHTML = t('brandWelcomeHtml');
+    const footerNoteEl = document.querySelector('.footer-note');
+    if (footerNoteEl) footerNoteEl.textContent = t('footerVersion');
+    renderGreeting();
+    if (typeof renderPlanList === 'function') renderPlanList();
+    if (typeof selectedPlan !== 'undefined' && selectedPlan) {
+      triggerTextEl.textContent = planDisplayLabel(selectedPlan);
+      summaryEl.innerHTML = selectedPlan.id === 'custom'
+        ? t('customPlanSummary')
+        : `${t('selectedPlanPrefix')} <b>${planDisplayLabel(selectedPlan)}</b>`;
+    }
+    if (typeof updateVolUI === 'function') updateVolUI();
+    if (typeof updateDayUI === 'function') updateDayUI();
+    try {
+      if (tg?.CloudStorage?.setItem) tg.CloudStorage.setItem('mbs_lang', currentLang, () => {});
+      else localStorage.setItem('mbs_lang', currentLang);
+    } catch (e) { /* storage unavailable — language just won't persist across sessions */ }
+  }
+
   const tg = window.Telegram?.WebApp;
   if (tg) {
     tg.ready();
     tg.expand();
   }
   const greetingEl = document.getElementById('greeting');
+  const langToggleBtn = document.getElementById('langToggleBtn');
   const user = tg?.initDataUnsafe?.user;
   // Raw signed init-data string. This is forwarded as-is to the backend so
   // it can cryptographically verify the request really came from this
@@ -850,9 +945,11 @@
   // `user` object above is NOT trusted for anything security-sensitive,
   // it's only used to render the UI (greeting/ID).
   const initData = tg?.initData || '';
-  if (user?.first_name) {
-    greetingEl.textContent = `سلام ${user.first_name} 👋`;
-  }
+  renderGreeting();
+  langToggleBtn?.addEventListener('click', () => {
+    tg?.HapticFeedback?.selectionChanged();
+    applyLanguage(currentLang === 'en' ? 'fa' : 'en');
+  });
   /* ---------- Show the user's Telegram ID ---------- */
   const userIdText = document.getElementById('userIdText');
   if (user?.id) {
@@ -872,7 +969,7 @@
   }
   profileBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleProfileMenu(); });
   function showComingSoon(label) {
-    const msg = `${label} به‌زودی فعال می‌شود 🙏`;
+    const msg = currentLang === 'en' ? `${label} coming soon 🙏` : `${label} به‌زودی فعال می‌شود 🙏`;
     tg?.showAlert ? tg.showAlert(msg) : alert(msg);
   }
   document.getElementById('menuWallet').addEventListener('click', () => {
@@ -1037,6 +1134,36 @@
       });
     });
   }
+
+  /* ---------- Trial-plan abuse guard (client-side, user-visible) ----------
+     hasUserPurchasedTrial_ on the server is the authoritative check (and
+     the ONLY one that actually matters for the wallet/Stars paths, since
+     those read the server's response) — but the card-receipt submission
+     goes over mode:'no-cors', so its own rejection is invisible to the
+     user. This client-side check runs BEFORE that request is even sent,
+     reusing whatever "اشتراک‌های من" purchase history is already cached
+     (lastPurchasesData/subsPurchasesLoaded), fetching it fresh only if the
+     user hasn't opened that tab yet this session. */
+  function hasUsedTrialPlanClientCheck_() {
+    return new Promise((resolve) => {
+      if (subsPurchasesLoaded) {
+        resolve((lastPurchasesData || []).some((p) => String(p.planLabel || '').indexOf('تستی') !== -1));
+        return;
+      }
+      if (!user?.id || !initData) { resolve(false); return; }
+      fetch(`${VISIT_LOG_URL}?action=my_purchases&initData=${encodeURIComponent(initData)}`)
+        .then((res) => res.json())
+        .then((res) => {
+          if (res && res.ok) {
+            subsPurchasesLoaded = true;
+            lastPurchasesData = res.purchases || [];
+          }
+          resolve((lastPurchasesData || []).some((p) => String(p.planLabel || '').indexOf('تستی') !== -1));
+        })
+        .catch(() => resolve(false));
+    });
+  }
+  const TRIAL_ALREADY_USED_MSG = 'شما قبلاً از پلن تستی استفاده کرده‌اید — این پلن فقط یک‌بار برای هر کاربر قابل خریده. یکی از پلن‌های دیگه رو انتخاب کنید.';
 
   function fetchMyPurchases() {
     subsModalBody.innerHTML = '<p class="subs-loading">در حال دریافت اطلاعات…</p>';
@@ -1258,6 +1385,23 @@
         text += `\nتا هدیه بعدی: ${remaining.toLocaleString('fa-IR')} دعوت دیگه`;
         inviteCountEl.textContent = text;
         inviteCountEl.classList.add('show');
+        // Progress bar toward the next milestone gift. `remainingToNextGift`
+        // is `giftEvery - (count % giftEvery)`, so `count % giftEvery` (the
+        // "completed" invites in the current window) is 0 right after a
+        // fresh gift and climbs back up to `giftEvery - 1` just before the
+        // next one — recovering it this way avoids trusting any extra field
+        // from the server beyond what handleReferralCountQuery_ already sends.
+        const every = res.giftEvery;
+        const progressWrap = document.getElementById('inviteProgressWrap');
+        const progressFill = document.getElementById('inviteProgressFill');
+        const progressLabel = document.getElementById('inviteProgressLabel');
+        if (every > 0 && progressWrap && progressFill && progressLabel) {
+          const completed = res.count % every;
+          const pct = Math.max(0, Math.min(100, Math.round((completed / every) * 100)));
+          progressFill.style.width = pct + '%';
+          progressLabel.textContent = `${completed.toLocaleString('fa-IR')} از ${every.toLocaleString('fa-IR')} دعوت تا هدیه بعدی`;
+          progressWrap.classList.add('show');
+        }
       })
       .catch(() => { /* best-effort — leave the counter hidden on failure */ });
   }
@@ -1339,14 +1483,24 @@
   locMarquee.addEventListener('touchstart', () => locMarquee.classList.add('paused'), { passive: true });
   locMarquee.addEventListener('touchend', () => locMarquee.classList.remove('paused'), { passive: true });
   /* ---------- Plans ---------- */
+  // labelEn is DISPLAY ONLY (see planDisplayLabel below) — every place that
+  // actually sends data to the server (planLabel=selectedPlan.label in the
+  // wallet/Stars/receipt submissions) MUST keep using `plan.label` (the
+  // Persian text) untouched, regardless of the UI language toggle. The
+  // backend parses "N روزه" out of that Persian text (parsePlanDurationDays_)
+  // and matches "تستی" for the trial-abuse guard (hasUserPurchasedTrial_) —
+  // switching what gets SENT here would silently break both.
   const plans = [
-    { id: 'trial',    label: 'پلن تستی - 1 گیگ 2 روزه - ۵۰٬۰۰۰ تومان',      icon: '➕', price: 50000,  cls: 'trial' },
-    { id: 'starter',  label: 'پلن استارتر - 5 گیگ 30 روزه - ۱۳۵٬۰۰۰ تومان',   icon: '🔒', price: 135000,  cls: '' },
-    { id: 'popular',  label: 'پلن پرطرفدار - 10 گیگ 30 روزه - ۲۱۰٬۰۰۰ تومان', icon: '👑', price: 210000, cls: '' },
-    { id: 'best',     label: 'پلن پرفروش - 15 گیگ 30 روزه - ۲۸۵٬۰۰۰ تومان',  icon: '✨', price: 285000, cls: '' },
-    { id: 'gold',     label: 'پلن طلایی - 30 گیگ 30 روزه - ۵۱۰٬۰۰۰ تومان',   icon: '⭐', price: 510000, cls: '' },
-    { id: 'custom',   label: '✍️انتخاب پلن دلخواه📝', icon: '', price: 0, cls: 'custom' }
+    { id: 'trial',    label: 'پلن تستی - 1 گیگ 2 روزه - ۵۰٬۰۰۰ تومان',      labelEn: 'Trial Plan - 1GB / 2 days - 50,000 T',      icon: '➕', price: 50000,  cls: 'trial' },
+    { id: 'starter',  label: 'پلن استارتر - 5 گیگ 30 روزه - ۱۳۵٬۰۰۰ تومان',   labelEn: 'Starter Plan - 5GB / 30 days - 135,000 T',  icon: '🔒', price: 135000,  cls: '' },
+    { id: 'popular',  label: 'پلن پرطرفدار - 10 گیگ 30 روزه - ۲۱۰٬۰۰۰ تومان', labelEn: 'Popular Plan - 10GB / 30 days - 210,000 T', icon: '👑', price: 210000, cls: '' },
+    { id: 'best',     label: 'پلن پرفروش - 15 گیگ 30 روزه - ۲۸۵٬۰۰۰ تومان',  labelEn: 'Best-Seller Plan - 15GB / 30 days - 285,000 T', icon: '✨', price: 285000, cls: '' },
+    { id: 'gold',     label: 'پلن طلایی - 30 گیگ 30 روزه - ۵۱۰٬۰۰۰ تومان',   labelEn: 'Gold Plan - 30GB / 30 days - 510,000 T',    icon: '⭐', price: 510000, cls: '' },
+    { id: 'custom',   label: '✍️انتخاب پلن دلخواه📝', labelEn: '✍️ Build a custom plan 📝', icon: '', price: 0, cls: 'custom' }
   ];
+  function planDisplayLabel(plan) {
+    return (currentLang === 'en' && plan.labelEn) ? plan.labelEn : plan.label;
+  }
   const triggerEl = document.getElementById('planTrigger');
   const triggerTextEl = document.getElementById('triggerText');
   const triggerIconEl = document.getElementById('triggerIcon');
@@ -1372,7 +1526,7 @@
       btn.dataset.id = plan.id;
       btn.innerHTML = `
         <span class="plan-icon">${plan.icon}</span>
-        <span class="plan-label">${plan.label}</span>
+        <span class="plan-label">${planDisplayLabel(plan)}</span>
       `;
       btn.addEventListener('click', () => selectPlan(plan));
       li.appendChild(btn);
@@ -1388,14 +1542,14 @@
   }
   function selectPlan(plan) {
     selectedPlan = plan;
-    triggerTextEl.textContent = plan.label;
+    triggerTextEl.textContent = planDisplayLabel(plan);
     triggerTextEl.classList.remove('placeholder');
     triggerIconEl.textContent = plan.icon;
     tg?.HapticFeedback?.selectionChanged();
     summaryEl.classList.add('show');
     summaryEl.innerHTML = plan.id === 'custom'
-      ? 'پلن دلخواه شما — حجم و روز موردنظرتون رو در بخش پایین انتخاب کنید.'
-      : `پلن انتخابی شما: <b>${plan.label}</b>`;
+      ? t('customPlanSummary')
+      : `${t('selectedPlanPrefix')} <b>${planDisplayLabel(plan)}</b>`;
     renderPlanList();
     togglePlanList(false);
     if (plan.id === 'custom') {
@@ -1444,6 +1598,7 @@
     not_found: 'این کد تخفیف پیدا نشد.',
     inactive: 'این کد تخفیف غیرفعال شده.',
     expired: 'این کد تخفیف منقضی شده.',
+    not_started: 'این کد تخفیف هنوز فعال نشده — بعداً دوباره امتحان کنید.',
     max_uses: 'ظرفیت استفاده از این کد تخفیف تموم شده.',
     bad_type: 'این کد تخفیف قابل استفاده نیست.',
     no_code: 'یه کد وارد کنید.'
@@ -1498,7 +1653,7 @@
       showCouponMsg('ارتباط برقرار نشد، دوباره تلاش کنید.', true);
     } finally {
       couponApplyBtn.disabled = false;
-      couponApplyBtn.textContent = 'اعمال';
+      couponApplyBtn.textContent = t('couponApplyBtn');
       updatePayAmount();
     }
   }
@@ -1529,7 +1684,9 @@
     }
     const addonCost = addonTotalPrice();
     if (addonCost > 0) {
-      addonTotalNote.innerHTML = `هزینه افزودنی‌ها: <b>${addonCost.toLocaleString('fa-IR')}</b> تومان`;
+      const numLocale = currentLang === 'en' ? 'en-US' : 'fa-IR';
+      const tomanWord = currentLang === 'en' ? 'Toman' : 'تومان';
+      addonTotalNote.innerHTML = `${t('addonCostLabel')}: <b>${addonCost.toLocaleString(numLocale)}</b> ${tomanWord}`;
       addonTotalNote.classList.add('show');
     } else {
       addonTotalNote.classList.remove('show');
@@ -1537,14 +1694,16 @@
     refreshWalletPayPanel();
   }
   function updateVolUI() {
-    volValueEl.textContent = extraVolume > 0 ? `${extraVolume.toLocaleString('fa-IR')} گیگ` : 'غیرفعال';
+    const numLocale = currentLang === 'en' ? 'en-US' : 'fa-IR';
+    volValueEl.textContent = extraVolume > 0 ? `${extraVolume.toLocaleString(numLocale)} ${t('gbUnit')}` : t('addonOff');
     volValueEl.classList.toggle('off', extraVolume === 0);
     volMinusBtn.disabled = extraVolume <= 0;
     volPlusBtn.disabled = extraVolume >= VOL_MAX;
     updatePayAmount();
   }
   function updateDayUI() {
-    dayValueEl.textContent = extraDays > 0 ? `${extraDays.toLocaleString('fa-IR')} روز` : 'غیرفعال';
+    const numLocale = currentLang === 'en' ? 'en-US' : 'fa-IR';
+    dayValueEl.textContent = extraDays > 0 ? `${extraDays.toLocaleString(numLocale)} ${t('dayUnit')}` : t('addonOff');
     dayValueEl.classList.toggle('off', extraDays === 0);
     dayMinusBtn.disabled = extraDays <= 0;
     dayPlusBtn.disabled = extraDays >= DAY_MAX;
@@ -1556,6 +1715,25 @@
     updateVolUI();
     updateDayUI();
   }
+  // Restore a previously chosen language (best-effort, defaults to fa on
+  // any failure/first run) — CloudStorage first (syncs per Telegram
+  // account), localStorage as a fallback for testing outside Telegram.
+  // NOTE: this must run only after `selectedPlan`, `renderPlanList`,
+  // `updateVolUI`, and `updateDayUI` above are declared/initialized —
+  // applyLanguage() references all of them, and calling it earlier (before
+  // `let selectedPlan` executes) would throw a Temporal Dead Zone error.
+  (function restoreLanguage() {
+    try {
+      if (tg?.CloudStorage?.getItem) {
+        tg.CloudStorage.getItem('mbs_lang', (err, value) => {
+          if (!err && (value === 'en' || value === 'fa')) applyLanguage(value);
+        });
+      } else {
+        const saved = localStorage.getItem('mbs_lang');
+        if (saved === 'en' || saved === 'fa') applyLanguage(saved);
+      }
+    } catch (e) { /* stay on default fa */ }
+  })();
   volMinusBtn.addEventListener('click', () => {
     extraVolume = extraVolume <= VOL_MIN ? 0 : extraVolume - VOL_STEP;
     updateVolUI();
@@ -1641,6 +1819,11 @@
       refreshWalletPayPanel();
       return;
     }
+    if (selectedPlan.id === 'trial' && await hasUsedTrialPlanClientCheck_()) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      tg?.showAlert ? tg.showAlert(TRIAL_ALREADY_USED_MSG) : alert(TRIAL_ALREADY_USED_MSG);
+      return;
+    }
     walletPayConfirmBtn.disabled = true;
     walletPayConfirmBtn.textContent = 'در حال پرداخت…';
     walletPayStatusEl.classList.remove('show');
@@ -1679,6 +1862,11 @@
         tg?.HapticFeedback?.notificationOccurred('error');
         walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
         refreshWalletPayPanel();
+      } else if (res && res.error === 'trial_already_used') {
+        tg?.HapticFeedback?.notificationOccurred('error');
+        tg?.showAlert ? tg.showAlert(TRIAL_ALREADY_USED_MSG) : alert(TRIAL_ALREADY_USED_MSG);
+        walletPayConfirmBtn.disabled = false;
+        walletPayConfirmBtn.textContent = 'پرداخت از کیف پول';
       } else if (res && typeof res.error === 'string' && res.error.indexOf('coupon_') === 0) {
         // The coupon became invalid between "اعمال" and actually paying
         // (e.g. someone else used up the last slot) — drop it and let the
@@ -1724,6 +1912,11 @@
         : alert('پرداخت با استارز روی این نسخه‌ی تلگرام پشتیبانی نمی‌شه.');
       return;
     }
+    if (selectedPlan.id === 'trial' && await hasUsedTrialPlanClientCheck_()) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      tg?.showAlert ? tg.showAlert(TRIAL_ALREADY_USED_MSG) : alert(TRIAL_ALREADY_USED_MSG);
+      return;
+    }
     starsPayConfirmBtn.disabled = true;
     starsPayConfirmBtn.textContent = 'در حال آماده‌سازی…';
     starsPayStatusEl.classList.remove('show');
@@ -1743,6 +1936,8 @@
       if (!res || !res.ok) {
         const errText = res && res.error === 'stars_not_configured'
           ? 'پرداخت با استارز فعلاً در دسترس نیست، لطفاً از روش دیگه‌ای استفاده کنید.'
+          : res && res.error === 'trial_already_used'
+          ? TRIAL_ALREADY_USED_MSG
           : (res && typeof res.error === 'string' && res.error.indexOf('coupon_') === 0)
             ? (COUPON_ERROR_TEXT[res.error.slice('coupon_'.length)] || 'کد تخفیف معتبر نیست.')
             // errorDetail carries Telegram's own error text when
@@ -2041,6 +2236,15 @@
       refreshCooldownUI();
       return;
     }
+    // Card receipts are submitted over mode:'no-cors' (see below) — the
+    // server's own trial-abuse rejection is invisible to us, so this is
+    // the ONLY place the user actually finds out before wasting a receipt
+    // upload on a plan they can't use twice.
+    if (selectedPlan?.id === 'trial' && await hasUsedTrialPlanClientCheck_()) {
+      tg?.HapticFeedback?.notificationOccurred('error');
+      tg?.showAlert ? tg.showAlert(TRIAL_ALREADY_USED_MSG) : alert(TRIAL_ALREADY_USED_MSG);
+      return;
+    }
     payConfirmBtn.disabled = true;
     payConfirmBtn.textContent = 'در حال ارسال…';
     try {
@@ -2059,6 +2263,7 @@
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           invoiceNumber,
+          planId: selectedPlan?.id || '',
           plan: selectedPlan?.label || '',
           price: discountedTotal || '',
           extraVolumeGB: extraVolume,
